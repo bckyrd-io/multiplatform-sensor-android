@@ -22,12 +22,7 @@ fun StatisticsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Statistics") },
-                navigationIcon = {
-                    Button(onClick = { navController.popBackStack() }) {
-                        Text("Back")
-                    }
-                }
+                title = { Text("Statistics") }
             )
         }
     ) { paddingValues ->

@@ -45,119 +45,101 @@ fun DashboardScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Today's Summary
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        item {
+            // Today's Summary
+            Card(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Today's Summary", style = MaterialTheme.typography.titleMedium)
-                todaySummary.forEach { (metric, value) ->
-                    Text("$metric: $value")
-                }
-            }
-        }
-
-        // Quick Actions
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(quickActions) { action ->
-                Button(
-                    onClick = { 
-                        navController.navigate("logActivity")
-                    },
-                    modifier = Modifier.size(100.dp)
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(action)
+                    Text("Today's Summary", style = MaterialTheme.typography.titleMedium)
+                    todaySummary.forEach { (metric, value) ->
+                        Text("$metric: $value")
+                    }
+                    Button(
+                        onClick = { navController.navigate("statistics") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("View Statistics")
+                    }
                 }
             }
         }
 
-        // Recent Workouts
-        Text("Recent Workouts", style = MaterialTheme.typography.titleMedium)
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(recentWorkouts) { (activity, date) ->
-                Text("$activity - $date")
-            }
-        }
-
-        // Goals
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        item {
+            // Quick Actions
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Goals", style = MaterialTheme.typography.titleMedium)
-                goals.forEach { (metric, value) ->
-                    Text("$metric: $value")
-                }
-                Button(
-                    onClick = { navController.navigate("goals") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("View All Goals")
-                }
-            }
-        }
-
-        // Statistics
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("Statistics", style = MaterialTheme.typography.titleMedium)
-                Button(
-                    onClick = { navController.navigate("statistics") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("View Statistics")
+                items(quickActions) { action ->
+                    Button(
+                        onClick = { 
+                            navController.navigate("logActivity")
+                        },
+                        modifier = Modifier.size(100.dp)
+                    ) {
+                        Text(action)
+                    }
                 }
             }
         }
 
-        // History
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        item {
+            // Recent Workouts
+            Card(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("History", style = MaterialTheme.typography.titleMedium)
-                Button(
-                    onClick = { navController.navigate("history") },
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("View Activity History")
+                    Text("Recent Workouts", style = MaterialTheme.typography.titleMedium)
+                    recentWorkouts.forEach { (activity, date) ->
+                        Text("$activity - $date")
+                    }
+                    Button(
+                        onClick = { navController.navigate("history") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("View All History")
+                    }
                 }
             }
         }
 
-        // Profile
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        item {
+            // Goals
+            Card(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Profile", style = MaterialTheme.typography.titleMedium)
-                Button(
-                    onClick = { navController.navigate("profile") },
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Edit Profile")
+                    Text("Goals", style = MaterialTheme.typography.titleMedium)
+                    goals.forEach { (metric, value) ->
+                        Text("$metric: $value")
+                    }
+                    Button(
+                        onClick = { navController.navigate("goals") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("View All Goals")
+                    }
                 }
             }
         }
+
+
     }
 }
 

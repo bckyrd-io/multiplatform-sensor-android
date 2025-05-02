@@ -14,23 +14,18 @@ import androidx.compose.foundation.lazy.items
 fun GoalsScreen(
     navController: NavController
 ) {
-    val goals = remember {
-        listOf(
+    var goals by remember {
+        mutableStateOf(listOf(
             Goal("Daily Steps", 10000, 7500, true),
             Goal("Weekly Distance", 35, 25, false),
             Goal("Monthly Calories", 50000, 35000, true)
-        )
+        ))
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Goals") },
-                navigationIcon = {
-                    Button(onClick = { navController.popBackStack() }) {
-                        Text("Back")
-                    }
-                },
                 actions = {
                     Button(onClick = { /* TODO: Show add goal dialog */ }) {
                         Text("Add Goal")
@@ -47,13 +42,43 @@ fun GoalsScreen(
         ) {
             // Goals List
             LazyColumn {
-                items(goals.size) { index ->
+                items(goals) { goal ->
                     GoalCard(
-                        goal = goals[index],
-                        onToggleNotification = { /* TODO: Implement notification toggle */ }
+                        goal = goal,
+                        onToggleNotification = { 
+                            goals = goals.map { g ->
+                                if (g.title == goal.title) g.copy(notificationsEnabled = !g.notificationsEnabled) 
+                                else g
+                            }
+                        },
+                        onTargetValueChanged = { newValue ->
+                            goals = goals.map { g ->
+                                if (g.title == goal.title) g.copy(targetValue = newValue) 
+                                else g
+                            }
+                        },
+                        onCurrentValueChanged = { newValue ->
+                            goals = goals.map { g ->
+                                if (g.title == goal.title) g.copy(currentValue = newValue) 
+                                else g
+                            }
+                        }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
+            }
+
+            // Save Button
+            Button(
+                onClick = {
+                    // TODO: Save goals data
+                    navController.popBackStack()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Save Goals")
             }
         }
     }
@@ -62,7 +87,9 @@ fun GoalsScreen(
 @Composable
 private fun GoalCard(
     goal: Goal,
-    onToggleNotification: () -> Unit
+    onToggleNotification: () -> Unit,
+    onTargetValueChanged: (Int) -> Unit,
+    onCurrentValueChanged: (Int) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -71,19 +98,43 @@ private fun GoalCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Title and Progress
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = goal.title,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text("${goal.currentValue}/${goal.targetValue}")
-            }
+            // Title
+            Text(
+                text = goal.title,
+                style = MaterialTheme.typography.titleMedium
+            )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Target Value Slider
+            Text("Target Value")
+            Slider(
+                value = goal.targetValue.toFloat(),
+                onValueChange = { 
+                    onTargetValueChanged(it.toInt())
+                },
+                valueRange = 0f..100000f,
+                steps = 999,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("Current: ${goal.targetValue}")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Current Value Slider
+            Text("Current Value")
+            Slider(
+                value = goal.currentValue.toFloat(),
+                onValueChange = { 
+                    onCurrentValueChanged(it.toInt())
+                },
+                valueRange = 0f..goal.targetValue.toFloat(),
+                steps = goal.targetValue - 1,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("Current: ${goal.currentValue}")
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Progress Bar
             LinearProgressIndicator(
@@ -111,9 +162,9 @@ private fun GoalCard(
 
 data class Goal(
     val title: String,
-    val targetValue: Int,
-    val currentValue: Int,
-    val notificationsEnabled: Boolean
+    var targetValue: Int,
+    var currentValue: Int,
+    var notificationsEnabled: Boolean
 ) {
     val progress: Float
         get() = (currentValue.toFloat() / targetValue).coerceIn(0f, 1f)

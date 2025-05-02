@@ -27,12 +27,7 @@ fun LogActivityScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log Activity") },
-                navigationIcon = {
-                    Button(onClick = { navController.popBackStack() }) {
-                        Text("Back")
-                    }
-                }
+                title = { Text("Log Activity") }
             )
         }
     ) { paddingValues ->
