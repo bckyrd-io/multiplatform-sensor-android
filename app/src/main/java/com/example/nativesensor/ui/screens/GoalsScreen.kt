@@ -6,6 +6,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
@@ -16,9 +18,9 @@ fun GoalsScreen(
 ) {
     var goals by remember {
         mutableStateOf(listOf(
-            Goal("Daily Steps", 10000, 7500, true),
-            Goal("Weekly Distance", 35, 25, false),
-            Goal("Monthly Calories", 50000, 35000, true)
+            Goal("Running Distance", 10000, 7500, true),
+            Goal("Cycling Distance", 35, 25, false),
+            Goal("Weightlifting Sets", 50, 35, true)
         ))
     }
 
@@ -26,9 +28,12 @@ fun GoalsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Goals") },
-                actions = {
-                    Button(onClick = { /* TODO: Show add goal dialog */ }) {
-                        Text("Add Goal")
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -66,6 +71,19 @@ fun GoalsScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
+            }
+
+            // Save Button
+            Button(
+                onClick = {
+                    // TODO: Save goals data
+                    navController.popBackStack()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Save Goals")
             }
 
             // Save Button

@@ -24,19 +24,19 @@ private val todaySummary = mapOf(
 private val quickActions = listOf(
     "Run",
     "Cycle",
-    "Yoga"
+    "Weightlifting"
 )
 
 private val recentWorkouts = listOf(
     "Run" to "2023-05-01",
     "Cycle" to "2023-04-30",
-    "Yoga" to "2023-04-29"
+    "Weightlifting" to "2023-04-29"
 )
 
 private val goals = mapOf(
-    "Steps" to 10000,
-    "Calories" to 500,
-    "Distance" to 5
+    "Running" to 10000,
+    "Cycling" to 500,
+    "Weightlifting" to 5
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -6,6 +6,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import java.time.LocalDate
@@ -19,17 +21,21 @@ fun HistoryScreen(
     val workouts = remember {
         listOf(
             Workout("Running", "2025-05-02", 30, 5.0, "Moderate"),
-            Workout("Cycling", "2025-05-01", 45, 10.0, "High")
+            Workout("Cycling", "2025-05-01", 45, 10.0, "High"),
+            Workout("Weightlifting", "2025-05-01", 60, 0.0, "High")
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Workout History") },
+                title = { Text("History") },
                 navigationIcon = {
-                    Button(onClick = { navController.popBackStack() }) {
-                        Text("Back")
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
