@@ -45,11 +45,6 @@ fun RegistrationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Create Account",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },

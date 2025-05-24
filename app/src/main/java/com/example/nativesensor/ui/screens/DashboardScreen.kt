@@ -10,9 +10,15 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+
 import androidx.compose.ui.tooling.preview.Preview
+
 
 // Test Data
 private val todaySummary = mapOf(
@@ -24,7 +30,8 @@ private val todaySummary = mapOf(
 private val quickActions = listOf(
     "Run",
     "Cycle",
-    "Weightlifting"
+    "Weightlifting",
+    "Yoga"
 )
 
 private val recentWorkouts = listOf(
@@ -45,17 +52,57 @@ fun DashboardScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            // Today's Summary
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Dashboard")
+                },
+                navigationIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profile"
+                        )
+                    }
+                },
+                actions = {
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Settings") },
+                            onClick = { navController.navigate("profile") }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Logout") },
+                            onClick = {
+                                expanded = false
+                                navController.navigate("login") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                // Today's Summary
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -77,17 +124,31 @@ fun DashboardScreen(
         item {
             // Quick Actions
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.Absolute.Left,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(quickActions) { action ->
-                    Button(
-                        onClick = { 
+                    Card(
+                        onClick = {
                             navController.navigate("logActivity")
                         },
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier
+                            .size(300.dp)
+                            .padding(8.dp)
                     ) {
-                        Text(action)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            when (action) {
+                                "Run" -> Icon(Icons.Default.Person , "Run")
+                                "Cycle" -> Icon(Icons.Default.AccountBox, "Cycle")
+                                "Weightlifting" -> Icon(Icons.Default.Home, "Weight")
+                                "Yoga" -> Icon(Icons.Default.FavoriteBorder, "Yoga")
+                            }
+                            Text(action)
+                        }
                     }
                 }
             }
@@ -133,7 +194,7 @@ fun DashboardScreen(
                         onClick = { navController.navigate("goals") },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("View All Goals")
+                        Text("Set A Goal")
                     }
                 }
             }
@@ -143,10 +204,11 @@ fun DashboardScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DashboardScreenPreview() {
-    DashboardScreen(navController = NavController(LocalContext.current))
+//@Preview(showBackground = true)
+//@Composable
+//fun DashboardScreenPreview() {
+//    DashboardScreen(navController = NavController(LocalContext.current))
+//}
 }
 
 //comment

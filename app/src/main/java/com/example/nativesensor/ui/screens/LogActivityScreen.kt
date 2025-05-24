@@ -1,7 +1,10 @@
 package com.example.nativesensor.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -26,10 +29,20 @@ fun LogActivityScreen(
 
     Scaffold(
         topBar = {
+
             TopAppBar(
-                title = { Text("Log Activity") }
+                title = { Text("log Activity") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
             )
         }
+
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -79,61 +92,7 @@ fun LogActivityScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Intensity Selection
-            Text("Intensity")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                RadioButton(
-                    selected = intensity == "Low",
-                    onClick = { intensity = "Low" }
-                )
-                Text("Low")
-
-                RadioButton(
-                    selected = intensity == "Moderate",
-                    onClick = { intensity = "Moderate" }
-                )
-                Text("Moderate")
-
-                RadioButton(
-                    selected = intensity == "High",
-                    onClick = { intensity = "High" }
-                )
-                Text("High")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Tracking Options
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Switch(
-                    checked = isGpsEnabled,
-                    onCheckedChange = { isGpsEnabled = it },
-                    modifier = Modifier.weight(1f)
-                )
-                Text("GPS Tracking")
-
-                Switch(
-                    checked = isStepTrackingEnabled,
-                    onCheckedChange = { isStepTrackingEnabled = it },
-                    modifier = Modifier.weight(1f)
-                )
-                Text("Step Tracking")
-
-                Switch(
-                    checked = isMotionTrackingEnabled,
-                    onCheckedChange = { isMotionTrackingEnabled = it },
-                    modifier = Modifier.weight(1f)
-                )
-                Text("Motion Tracking")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+        
 
             // Notes
             OutlinedTextField(
