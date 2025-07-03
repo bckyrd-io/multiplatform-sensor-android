@@ -10,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 
 sealed class Screen(val route: String) {
@@ -19,7 +20,6 @@ sealed class Screen(val route: String) {
     object Dashboard : Screen("dashboard")
     object LogActivity : Screen("logActivity")
     object History : Screen("history")
-    object Statistics : Screen("statistics")
     object Goals : Screen("goals")
     object Profile : Screen("profile")
 }
@@ -51,9 +51,7 @@ fun AppNavGraph(
         composable(Screen.History.route) {
             HistoryScreen(navController)
         }
-        composable(Screen.Statistics.route) {
-            StatisticsScreen(navController)
-        }
+
         composable(Screen.Goals.route) {
             GoalsScreen(navController)
         }
@@ -66,5 +64,5 @@ fun AppNavGraph(
 @Preview(showBackground = true)
 @Composable
 fun AppNavGraphPreview() {
-    AppNavGraph(navController = NavController(LocalContext.current) as NavHostController)
+    AppNavGraph(navController = rememberNavController())
 }

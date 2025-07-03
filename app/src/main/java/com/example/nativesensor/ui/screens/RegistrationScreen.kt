@@ -26,6 +26,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.nativesensor.network.ApiClient
+import com.example.nativesensor.network.RegisterRequest
+import com.example.nativesensor.network.RegisterResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +43,8 @@ fun RegistrationScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var termsAccepted by remember { mutableStateOf(false) }
+    var registrationResult by remember { mutableStateOf("") }
+    var isRegistering by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -82,10 +90,37 @@ fun RegistrationScreen(
         }
 
         Button(
-            onClick = { navController.navigate("dashboard") },
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+                isRegistering = true
+                registrationResult = ""
+                val request = RegisterRequest(name, email, password)
+                ApiClient.apiService.registerUser(request).enqueue(object : Callback<RegisterResponse> {
+                    override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
+                        isRegistering = false
+                        if (response.isSuccessful && response.body() != null) {
+                            registrationResult = response.body()!!.message
+                        } else {
+                            registrationResult = "Registration failed: ${response.message()}"
+                        }
+                    }
+                    override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
+                        isRegistering = false
+                        registrationResult = "Error: ${t.localizedMessage}"
+                    }
+                })
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isRegistering && termsAccepted
         ) {
-            Text("Register")
+            Text(if (isRegistering) "Registering..." else "Register")
+        }
+
+        if (registrationResult.isNotEmpty()) {
+            Text(
+                text = registrationResult,
+                color = if (registrationResult.contains("success", true)) Color.Green else Color.Red,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
     }
 }

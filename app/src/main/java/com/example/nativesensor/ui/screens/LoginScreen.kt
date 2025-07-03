@@ -16,7 +16,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 
 import androidx.compose.ui.platform.LocalContext
-
+import androidx.compose.ui.graphics.Color
+import com.example.nativesensor.network.ApiClient
+import com.example.nativesensor.network.LoginRequest
+import com.example.nativesensor.network.LoginResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +32,8 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var loginResult by remember { mutableStateOf("") }
+    var isLoggingIn by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -60,10 +68,40 @@ fun LoginScreen(
         }
 
         Button(
-            onClick = { navController.navigate("dashboard") },
-            modifier = Modifier.fillMaxWidth()
+            onClick = {
+                isLoggingIn = true
+                loginResult = ""
+                val request = LoginRequest(email, password)
+                ApiClient.apiService.loginUser(request).enqueue(object : Callback<LoginResponse> {
+                    override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                        isLoggingIn = false
+                        if (response.isSuccessful && response.body() != null) {
+                            loginResult = response.body()!!.message
+                            if (response.body()!!.success) {
+                                navController.navigate("dashboard")
+                            }
+                        } else {
+                            loginResult = "Login failed: ${response.message()}"
+                        }
+                    }
+                    override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                        isLoggingIn = false
+                        loginResult = "Error: ${t.localizedMessage}"
+                    }
+                })
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoggingIn
         ) {
-            Text("Login")
+            Text(if (isLoggingIn) "Logging in..." else "Login")
+        }
+
+        if (loginResult.isNotEmpty()) {
+            Text(
+                text = loginResult,
+                color = if (loginResult.contains("success", true)) Color.Green else Color.Red,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
     }
 }

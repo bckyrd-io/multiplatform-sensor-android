@@ -2,19 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Sensor Permissions -->
-    <uses-permission android:name="android.permission.BODY_SENSORS" />
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-    
-    <!-- Location Permissions -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    
-    <!-- Background Location Permission -->
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" 
-        android:usesPermissionFlags="neverForLocation" />
+    <!-- Only keep Internet permission for API calls -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".NativeSensorApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -31,7 +23,6 @@
             android:theme="@style/Theme.Nativesensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

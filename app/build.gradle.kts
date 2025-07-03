@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -39,9 +39,6 @@ android {
     }
 }
 
-
-
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -51,22 +48,17 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.foundation)
+    implementation("androidx.compose.material:material-icons-extended")
 
     // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation(libs.androidx.navigation.compose)
 
     // Coil for image loading
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.compose)
 
-    // Compose UI
-    implementation("androidx.compose.ui:ui:1.5.4")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.4")
-    implementation("androidx.compose.foundation:foundation:1.5.4")
-    implementation("androidx.compose.material:material:1.5.4")
-
-    // Add these dependencies
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0") // For Hilt integration with Compose
-    implementation("androidx.datastore:datastore-preferences:1.0.0") // For storing user preferences
+    // Datastore
+    implementation(libs.androidx.datastore.preferences)
 
     // Test dependencies
     testImplementation(libs.junit)
@@ -76,4 +68,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Retrofit and Gson
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
