@@ -76,9 +76,22 @@ fun LoginScreen(
                     override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                         isLoggingIn = false
                         if (response.isSuccessful && response.body() != null) {
-                            loginResult = response.body()!!.message
-                            if (response.body()!!.success) {
-                                navController.navigate("dashboard")
+                            val loginResponse = response.body()!!
+                            loginResult = loginResponse.message
+                            if (loginResponse.success) {
+                                // Store user information
+                                loginResponse.user?.let { user ->
+                                    UserSession.currentUser = user
+                                    UserSession.userId = user.id.toString()
+                                    UserSession.userRole = user.role
+                                }
+                                
+                                // Navigate based on role
+                                if (loginResponse.user?.role == "admin") {
+                                    navController.navigate("adminDashboard")
+                                } else {
+                                    navController.navigate("dashboard")
+                                }
                             }
                         } else {
                             loginResult = "Login failed: ${response.message()}"
@@ -103,6 +116,20 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
+    }
+}
+
+// User session object to store current user information
+object UserSession {
+    var currentUser: com.example.nativesensor.network.UserData? = null
+    var userId: String = ""
+    var userRole: String = "user"
+    
+    fun isAdmin(): Boolean = userRole == "admin"
+    fun clear() {
+        currentUser = null
+        userId = ""
+        userRole = "user"
     }
 }
 

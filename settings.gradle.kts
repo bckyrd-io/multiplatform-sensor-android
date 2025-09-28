@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "nativesensor"
 include(":app")
+include(":wear")

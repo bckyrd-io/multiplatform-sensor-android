@@ -12,7 +12,8 @@ class User(
     private var height: Double = 0.0,
     private var weight: Double = 0.0,
     private var targetSteps: Int = 0,
-    private var targetCalories: Int = 0
+    private var targetCalories: Int = 0,
+    private var role: String = "user"
 ) {
     
     // Properties with getters and setters
@@ -39,6 +40,11 @@ class User(
     
     fun getTargetCalories(): Int = targetCalories
     fun setTargetCalories(value: Int) { targetCalories = value }
+    
+    fun getRole(): String = role
+    fun setRole(value: String) { role = value }
+    
+    fun isAdmin(): Boolean = role == "admin"
     
     /**
      * Calculate BMI based on user's height and weight

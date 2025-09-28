@@ -18,6 +18,7 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Registration : Screen("registration")
     object Dashboard : Screen("dashboard")
+    object AdminDashboard : Screen("adminDashboard")
     object LogActivity : Screen("logActivity")
     object History : Screen("history")
     object Goals : Screen("goals")
@@ -44,6 +45,9 @@ fun AppNavGraph(
         }
         composable(Screen.Dashboard.route) {
             DashboardScreen(navController)
+        }
+        composable(Screen.AdminDashboard.route) {
+            AdminDashboardScreen(navController)
         }
         composable(Screen.LogActivity.route) {
             LogActivityScreen(navController)

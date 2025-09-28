@@ -101,11 +101,23 @@ fun DashboardScreen(
                             text = { Text("Settings") },
                             onClick = { navController.navigate("profile") }
                         )
+                        if (UserSession.isAdmin()) {
+                            DropdownMenuItem(
+                                text = { Text("Admin Panel") },
+                                onClick = { 
+                                    expanded = false
+                                    navController.navigate("adminDashboard")
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text("Logout") },
                             onClick = {
                                 expanded = false
-                                navController.navigate("login") { popUpTo("login") { inclusive = true } }
+                                UserSession.clear()
+                                navController.navigate("welcome") { 
+                                    popUpTo(0) { inclusive = true } 
+                                }
                             }
                         )
                     }
@@ -120,6 +132,31 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                // Welcome message with user info
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Welcome, ${UserSession.currentUser?.name ?: "User"}!",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        )
+                        Text(
+                            text = "Role: ${UserSession.currentUser?.role ?: "user"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+
             item {
                 // Period Selection
                 Row(
