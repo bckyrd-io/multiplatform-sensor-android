@@ -11,143 +11,128 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.*
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.example.wear.R
-import com.example.wear.presentation.theme.NativesensorTheme
-import com.example.wear.sensor.SensorDataManager
+import com.example.wear.presentation.theme.FigcomposeTheme
+import com.example.wear.presentation.screens.SelectPlayerScreen
+import com.example.wear.presentation.screens.StartSessionScreen
+import com.example.wear.presentation.screens.LiveMetricsScreen
+import com.example.wear.util.SessionsManager
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var sensorDataManager: SensorDataManager
-    private var isCollecting = mutableStateOf(false)
-    
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.values.all { it }
-        if (allGranted) {
-            startSensorCollection()
-        }
-    }
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+
         super.onCreate(savedInstanceState)
-        
-        sensorDataManager = SensorDataManager(this)
-        
-        // Set a default user ID (in real app, this would come from login)
-        sensorDataManager.setUserId(1)
-        
+
         setTheme(android.R.style.Theme_DeviceDefault)
-        
+
         setContent {
-            WearApp(
-                isCollecting = isCollecting.value,
-                onStartCollection = { requestPermissions() },
-                onStopCollection = { stopSensorCollection() }
-            )
+            WearApp()
         }
-    }
-    
-    private fun requestPermissions() {
-        val permissions = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACTIVITY_RECOGNITION
-        )
-        
-        val permissionsToRequest = permissions.filter {
-            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
-        }.toTypedArray()
-        
-        if (permissionsToRequest.isNotEmpty()) {
-            requestPermissionLauncher.launch(permissionsToRequest)
-        } else {
-            startSensorCollection()
-        }
-    }
-    
-    private fun startSensorCollection() {
-        sensorDataManager.startDataCollection()
-        isCollecting.value = true
-    }
-    
-    private fun stopSensorCollection() {
-        sensorDataManager.stopDataCollection()
-        isCollecting.value = false
     }
 }
 
+private enum class WearScreen { SelectPlayer, StartSession, LiveMetrics }
+
 @Composable
-fun WearApp(
-    isCollecting: Boolean,
-    onStartCollection: () -> Unit,
-    onStopCollection: () -> Unit
-) {
-    NativesensorTheme {
+fun WearApp() {
+    FigcomposeTheme {
+        val scope = rememberCoroutineScope()
+        val sessionsManager = remember { SessionsManager() }
+        val context = LocalContext.current
+
+        var current by remember { mutableStateOf(WearScreen.SelectPlayer) }
+        var playerName by remember { mutableStateOf("") }
+        var playerId by remember { mutableStateOf(0) }
+        var sessionName by remember { mutableStateOf("Session") }
+        var sessionId by remember { mutableStateOf(0) }
+
+        val permissions = arrayOf(
+            Manifest.permission.BODY_SENSORS,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+        val launcher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { /* no-op */ }
+
+        fun hasAllPermissions(): Boolean = permissions.all { p ->
+            ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colors.background),
+                .background(MaterialTheme.colors.background)
+                .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                TimeText()
-                
-                Text(
-                    text = if (isCollecting) "Collecting Data..." else "Sensor Monitor",
-                    style = MaterialTheme.typography.h6,
-                    color = MaterialTheme.colors.primary,
-                    textAlign = TextAlign.Center
-                )
-                
-                Button(
-                    onClick = if (isCollecting) onStopCollection else onStartCollection,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(24.dp)
-                ) {
-                    Text(
-                        text = if (isCollecting) "Stop Collection" else "Start Collection",
-                        style = MaterialTheme.typography.button
-                    )
+            TimeText()
+
+            if (!hasAllPermissions()) {
+                Button(onClick = { launcher.launch(permissions) }) {
+                    Text("Grant Permissions")
                 }
-                
-                if (isCollecting) {
-                    Text(
-                        text = "Sending data to server...",
-                        style = MaterialTheme.typography.caption2,
-                        color = MaterialTheme.colors.secondary,
-                        textAlign = TextAlign.Center
+            } else {
+                when (current) {
+                    WearScreen.SelectPlayer -> SelectPlayerScreen(
+                        onPlayerSelected = { id, name ->
+                            playerId = id
+                            playerName = name
+                            scope.launch {
+                                val active = sessionsManager.getActiveSession()
+                                sessionId = active?.id ?: 0
+                                sessionName = active?.title ?: "Session"
+                                current = WearScreen.StartSession
+                            }
+                        }
+                    )
+
+                    WearScreen.StartSession -> StartSessionScreen(
+                        sessionName = sessionName,
+                        playerName = playerName,
+                        onStart = { current = WearScreen.LiveMetrics }
+                    )
+
+                    WearScreen.LiveMetrics -> LiveMetricsScreen(
+                        sessionName = sessionName,
+                        playerName = playerName,
+                        sessionId = sessionId,
+                        playerId = playerId,
+                        onEnd = {
+                            // Return to selection for a new player/session
+                            current = WearScreen.SelectPlayer
+                        }
                     )
                 }
             }
         }
     }
 }
-
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    WearApp(
-        isCollecting = false,
-        onStartCollection = {},
-        onStopCollection = {}
-    )
+    WearApp()
 }

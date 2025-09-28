@@ -16,10 +16,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
     }
 }
 
-rootProject.name = "nativesensor"
+rootProject.name = "figcompose"
 include(":app")
 include(":wear")
