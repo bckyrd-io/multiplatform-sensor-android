@@ -10,11 +10,12 @@ android {
 
     defaultConfig {
         applicationId = "com.example.wear"
-        minSdk = 30
+        minSdk = 25
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -33,7 +34,6 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    useLibrary("wear-sdk")
     buildFeatures {
         compose = true
     }
@@ -41,30 +41,30 @@ android {
 
 dependencies {
 
-    implementation(libs.play.services.wearable)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    // Wear OS Compose
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.wear.tooling.preview)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.tiles)
-    implementation(libs.androidx.tiles.material)
-    implementation(libs.androidx.tiles.tooling.preview)
-    implementation(libs.horologist.compose.tools)
-    implementation(libs.horologist.tiles)
-    implementation(libs.androidx.watchface.complications.data.source.ktx)
-    // Networking (match app module)
+    // Networking
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // Location services for speed/distance
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    debugImplementation(libs.androidx.tiles.tooling)
 }

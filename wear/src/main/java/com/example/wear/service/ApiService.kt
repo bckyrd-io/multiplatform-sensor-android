@@ -1,75 +1,37 @@
 package com.example.wear.service
 
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
+/**
+ * API service interface for Wear OS network calls
+ */
 interface ApiService {
-    @GET("health")
-    suspend fun health(): Response<HealthResponse>
-
-    // Sessions
-    @GET("sessions")
-    suspend fun getSessions(): Response<List<SessionDto>>
-
-    @POST("sessions")
-    suspend fun createSession(@Body req: CreateSessionRequest): Response<CreateSessionResponse>
-
-    // Users (for selecting who wears the watch)
+    /**
+     * List users with optional search and limit
+     */
     @GET("users")
     suspend fun getUsers(
         @Query("q") q: String? = null,
-        @Query("limit") limit: Int? = 50
+        @Query("limit") limit: Int? = null
     ): Response<List<UserDto>>
 
-    // Performance uploads from watch (e.g., heart rate)
+    /**
+     * Submit performance metrics (speed, heart rate, distance, etc.)
+     */
     @POST("performance")
-    suspend fun postPerformance(@Body req: PerfRequest): Response<PerfResponse>
+    suspend fun postPerformance(@Body req: PerformanceRequest): Response<PerformanceResponse>
+
+    /**
+     * Fetch all sessions (we'll pick the latest by ID on the watch)
+     */
+    @GET("sessions")
+    suspend fun getSessions(): Response<List<SessionDto>>
 }
 
-// --- DTOs ---
-
-data class HealthResponse(
-    val status: String?,
-    val time: String?
-)
-
-data class SessionDto(
-    val id: Int,
-    val title: String?,
-    val description: String?,
-    val coach_id: Int?,
-    val start_time: String?,
-    val end_time: String?,
-    val session_type: String?,
-    val location: String?
-)
-
-data class CreateSessionRequest(
-    val title: String? = null,
-    val description: String? = null,
-    val coach_id: Int? = null,
-    val start_time: String? = null,
-    val end_time: String? = null,
-    val session_type: String? = null,
-    val location: String? = null,
-    val sessionName: String? = null,
-    val name: String? = null,
-    val sessionType: String? = null,
-    val type: String? = null,
-    val date: String? = null,
-    val startTime: String? = null,
-    val endTime: String? = null,
-    val notes: String? = null
-)
-
-data class CreateSessionResponse(
-    val success: Boolean,
-    val sessionId: Int?
-)
-
+/**
+ * User DTO
+ */
 data class UserDto(
     val id: Int,
     val username: String?,
@@ -80,7 +42,10 @@ data class UserDto(
     val created_at: String?
 )
 
-data class PerfRequest(
+/**
+ * Performance request/response DTOs
+ */
+data class PerformanceRequest(
     val player_id: Int,
     val session_id: Int? = null,
     val distance_meters: Double? = null,
@@ -91,7 +56,21 @@ data class PerfRequest(
     val heart_rate: Int? = null
 )
 
-data class PerfResponse(
+data class PerformanceResponse(
     val success: Boolean,
     val performanceId: Int?
+)
+
+/**
+ * Session DTO
+ */
+data class SessionDto(
+    val id: Int,
+    val title: String?,
+    val description: String?,
+    val coach_id: Int?,
+    val start_time: String?,
+    val end_time: String?,
+    val session_type: String?,
+    val location: String?
 )

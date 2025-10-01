@@ -1,5 +1,6 @@
 package com.example.wear.service
 
+import com.example.wear.util.NetworkConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,7 +9,9 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitProvider {
     private val logging: HttpLoggingInterceptor by lazy {
-        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
     }
 
     private val okHttpClient: OkHttpClient by lazy {
@@ -23,9 +26,6 @@ object RetrofitProvider {
     @Volatile
     private var retrofit: Retrofit? = null
 
-    @Volatile
-    private var baseUrl: String = "http://192.168.1.178:4000/"
-
     fun api(): ApiService {
         val current = retrofit
         if (current != null) return current.create(ApiService::class.java)
@@ -35,7 +35,7 @@ object RetrofitProvider {
             if (again != null) return again.create(ApiService::class.java)
 
             val built = Retrofit.Builder()
-                .baseUrl(baseUrl)
+                .baseUrl(NetworkConfig.baseUrl)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
@@ -45,8 +45,8 @@ object RetrofitProvider {
     }
 
     fun setBaseUrl(url: String) {
-        val normalized = if (url.endsWith("/")) url else "$url/"
-        baseUrl = normalized
+        NetworkConfig.baseUrl = url
+        // invalidate retrofit so it will rebuild with new base url
         retrofit = null
     }
 }
