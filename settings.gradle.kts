@@ -22,4 +22,3 @@ dependencyResolutionManagement {
 rootProject.name = "figcompose"
 include(":app")
 include(":wear")
-include(":myapplication")
