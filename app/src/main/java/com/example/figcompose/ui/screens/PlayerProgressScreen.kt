@@ -142,7 +142,7 @@ private fun MetricsCard(perf: List<com.example.figcompose.service.PerformanceDto
             val avgHr = perf.mapNotNull { it.heart_rate?.toDouble() }.average().takeIf { !it.isNaN() }
             val maxHr = perf.mapNotNull { it.heart_rate }.maxOrNull()
             val totalDistance = perf.mapNotNull { it.distance_meters }.sum()
-            val topSpeed = perf.mapNotNull { it.top_speed }.maxOrNull()
+            val avgSpeed = perf.mapNotNull { it.speed }.average().takeIf { !it.isNaN() }
 
             SectionTitle("Heart Rate")
             KeyValueRow("Average", avgHr?.let { "${"%.0f".format(it)} bpm" } ?: "-")
@@ -156,8 +156,8 @@ private fun MetricsCard(perf: List<com.example.figcompose.service.PerformanceDto
 
             Divider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFE5E7EB))
 
-            SectionTitle("Speed")
-            KeyValueRow("Top Speed", topSpeed?.let { String.format("%.2f", it) } ?: "-")
+            SectionTitle("Speed (m/s)")
+            KeyValueRow("Average", avgSpeed?.let { String.format("%.2f m/s", it) } ?: "-")
         }
     }
 }

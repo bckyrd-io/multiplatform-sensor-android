@@ -1,0 +1,127 @@
+{
+    "collectionName": "API Seed Data",
+    "dateExported": "2025-10-10",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+      {
+        "name": "Register Coach",
+        "url": "http://localhost:4000/auth/register",
+        "method": "POST",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "type": "json",
+          "raw": {
+            "username": "coach1",
+            "email": "coach1@example.com",
+            "password": "password123",
+            "role": "coach",
+            "full_name": "Coach Carter",
+            "phone": "1234567890"
+          }
+        }
+      },
+      {
+        "name": "Register Player",
+        "url": "http://localhost:4000/auth/register",
+        "method": "POST",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "type": "json",
+          "raw": {
+            "username": "player1",
+            "email": "player1@example.com",
+            "password": "password123",
+            "role": "player",
+            "full_name": "John Doe",
+            "phone": "0987654321"
+          }
+        }
+      },
+      {
+        "name": "Create Training Session",
+        "url": "http://localhost:4000/sessions",
+        "method": "POST",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "type": "json",
+          "raw": {
+            "title": "Morning Sprint Drills",
+            "description": "High-intensity sprint training",
+            "coach_id": 1,
+            "session_type": "Speed Training",
+            "date": "2025-10-11",
+            "startTime": "07:00",
+            "endTime": "09:00",
+            "location": "Main Field"
+          }
+        }
+      },
+      {
+        "name": "Add Performance Data",
+        "url": "http://localhost:4000/performance",
+        "method": "POST",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "type": "json",
+          "raw": {
+            "player_id": 2,
+            "session_id": 1,
+            "distance_meters": 2000,
+            "speed": 25.5,
+            "acceleration": 3.2,
+            "deceleration": 2.8,
+            "heart_rate": 150,
+            "cadence_spm": 85
+          }
+        }
+      },
+      {
+        "name": "Add Feedback",
+        "url": "http://localhost:4000/feedback",
+        "method": "POST",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "type": "json",
+          "raw": {
+            "coach_id": 1,
+            "player_id": 2,
+            "session_id": 1,
+            "notes": "Excellent sprint effort, focus on endurance."
+          }
+        }
+      },
+      {
+        "name": "Submit Survey",
+        "url": "http://localhost:4000/survey",
+        "method": "POST",
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "type": "json",
+          "raw": {
+            "player_id": 2,
+            "session_id": 1,
+            "response": {
+              "rating": 8,
+              "condition": "Good",
+              "performance": "Felt strong, could push more",
+              "notes": "Good warm-up helped."
+            }
+          }
+        }
+      }
+    ]
+  }
+  

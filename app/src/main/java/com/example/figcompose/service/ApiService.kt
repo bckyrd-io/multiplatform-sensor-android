@@ -202,10 +202,10 @@ data class PerformanceDto(
     val player_id: Int?,
     val session_id: Int?,
     val distance_meters: Double?,
-    val top_speed: Double?,
-    val avg_speed: Double?,
+    val speed: Double?,
     val acceleration: Double?,
     val deceleration: Double?,
+    val cadence_spm: Double?,
     val heart_rate: Int?,
     val recorded_at: String?
 )

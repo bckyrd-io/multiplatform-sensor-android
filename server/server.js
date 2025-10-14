@@ -86,6 +86,14 @@ function normalizeDateInput(dateStr) {
   return dateStr;
 }
 
+/* Helper utilities */
+function toFiniteNumberOrNull(val) {
+  if (val === null || typeof val === 'undefined') return null;
+  const n = typeof val === 'number' ? val : Number(val);
+  if (!Number.isFinite(n)) return null;
+  return n;
+}
+
 /* -------------------------
    Init Tables
    ------------------------- */
@@ -105,8 +113,6 @@ async function initDb() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`
     );
-    // Safe upgrade: add missing column if upgrading existing DB
-    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
     console.log("✅ Users table ready");
 
     console.log("📊 Creating sessions table...");
@@ -124,9 +130,6 @@ async function initDb() {
         FOREIGN KEY (coach_id) REFERENCES users(id) ON DELETE SET NULL
       )`
     );
-    // Safe upgrade for existing DBs
-    await query(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS session_type VARCHAR(64)`);
-    await query(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS location VARCHAR(255)`);
     console.log("✅ Sessions table ready");
 
     console.log("📊 Creating performance table...");
@@ -136,17 +139,17 @@ async function initDb() {
         player_id INT,
         session_id INT,
         distance_meters DOUBLE,
-        top_speed DOUBLE,
-        avg_speed DOUBLE,
+        speed DOUBLE,
         acceleration DOUBLE,
         deceleration DOUBLE,
+        cadence_spm DOUBLE,
         heart_rate INT,
         recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (player_id) REFERENCES users(id),
         FOREIGN KEY (session_id) REFERENCES sessions(id)
       )`
     );
-    console.log("✅ Performance table ready");
+    console.log('✅ Performance table ready');
 
     console.log("📊 Creating feedback table...");
     await query(
@@ -181,166 +184,6 @@ async function initDb() {
     console.log("✅ Database initialization complete!");
   } catch (err) {
     console.error("❌ Database initialization failed:", err.message);
-    throw err;
-  }
-}
-
-/* -------------------------
-   Seed Data (for testing)
-   ------------------------- */
-async function seedDb() {
-  console.log("🌱 Seeding sample data (if empty)...");
-  try {
-    // Seed Users
-    const uc = await query("SELECT COUNT(*) AS c FROM users");
-    if ((uc[0]?.c || 0) === 0) {
-      console.log("  ➕ Inserting sample users (2 coaches + 12 players)...");
-      const passCoach = await bcrypt.hash("coach123", 10);
-      const passPlayer = await bcrypt.hash("player123", 10);
-      // Coaches
-      await query(
-        `INSERT INTO users (username, email, password_hash, role, full_name, phone) VALUES (?, ?, ?, 'coach', ?, ?)`,
-        ["coach1", "coach1@example.com", passCoach, "Coach One", "111-111-1111"]
-      );
-      await query(
-        `INSERT INTO users (username, email, password_hash, role, full_name, phone) VALUES (?, ?, ?, 'coach', ?, ?)`,
-        ["coach2", "coach2@example.com", passCoach, "Coach Two", "222-222-2222"]
-      );
-      // Players 1..12
-      for (let i = 1; i <= 12; i++) {
-        await query(
-          `INSERT INTO users (username, email, password_hash, role, full_name, phone) VALUES (?, ?, ?, 'player', ?, ?)`,
-          [
-            `player${i}`,
-            `player${i}@example.com`,
-            passPlayer,
-            `Player ${i}`,
-            `555-000-${String(1000 + i).slice(-4)}`,
-          ]
-        );
-      }
-    }
-
-    // Get some IDs
-    const coaches = await query("SELECT id FROM users WHERE role='coach' ORDER BY id ASC");
-    const players = await query("SELECT id FROM users WHERE role='player' ORDER BY id ASC");
-    const coachId = coaches[0]?.id || null;
-    const playerId1 = players[0]?.id || null;
-    const playerId2 = players[1]?.id || null;
-
-    // Seed Sessions
-    const sc = await query("SELECT COUNT(*) AS c FROM sessions");
-    if ((sc[0]?.c || 0) === 0 && coachId) {
-      console.log("  ➕ Inserting sample sessions (4)...");
-      const sessionsToInsert = [
-        {
-          title: "Passing Drills",
-          description: "Focus on short and mid-range passing accuracy.",
-          start: "2025-01-01 10:00:00",
-          end: "2025-01-01 11:00:00",
-          type: "Training",
-          location: "Main Field",
-        },
-        {
-          title: "Conditioning",
-          description: "Endurance and speed work.",
-          start: "2025-01-02 09:00:00",
-          end: "2025-01-02 10:15:00",
-          type: "Fitness",
-          location: "Track",
-        },
-        {
-          title: "Scrimmage",
-          description: "Intra-squad scrimmage.",
-          start: "2025-01-03 14:00:00",
-          end: "2025-01-03 15:30:00",
-          type: "Match",
-          location: "Stadium",
-        },
-        {
-          title: "Recovery",
-          description: "Low-intensity recovery session.",
-          start: "2025-01-04 08:30:00",
-          end: "2025-01-04 09:15:00",
-          type: "Recovery",
-          location: "Gym",
-        },
-      ];
-      for (const s of sessionsToInsert) {
-        await query(
-          `INSERT INTO sessions (title, description, coach_id, start_time, end_time, session_type, location) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [s.title, s.description, coachId, s.start, s.end, s.type, s.location]
-        );
-      }
-    }
-
-    const sessions = await query("SELECT id FROM sessions ORDER BY id ASC");
-
-    // Seed Performance
-    const pc = await query("SELECT COUNT(*) AS c FROM performance");
-    if ((pc[0]?.c || 0) === 0 && players.length > 0 && sessions.length > 0) {
-      console.log("  ➕ Inserting sample performance for 12 players across first 2 sessions...");
-      const sessionIdsForPerf = sessions.slice(0, 2).map((s) => s.id);
-      for (let pIdx = 0; pIdx < players.length; pIdx++) {
-        const pid = players[pIdx].id;
-        for (let sIdx = 0; sIdx < sessionIdsForPerf.length; sIdx++) {
-          const sid = sessionIdsForPerf[sIdx];
-          const base = 2500 + pIdx * 80 + sIdx * 120; // distance baseline
-          const top = 6.5 + (pIdx % 6) * 0.3 + sIdx * 0.2;
-          const avg = 4.5 + (pIdx % 5) * 0.2 + sIdx * 0.1;
-          const acc = 1.8 + (pIdx % 4) * 0.1;
-          const dec = 1.6 + (pIdx % 3) * 0.1;
-          const hr = 135 + (pIdx % 7) * 2 + sIdx * 3;
-          await query(
-            `INSERT INTO performance (player_id, session_id, distance_meters, top_speed, avg_speed, acceleration, deceleration, heart_rate) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [pid, sid, base, top, avg, acc, dec, hr]
-          );
-        }
-      }
-    }
-
-    // Seed Feedback
-    const fc = await query("SELECT COUNT(*) AS c FROM feedback");
-    if ((fc[0]?.c || 0) === 0 && coachId && sessions.length > 0 && players.length > 0) {
-      console.log("  ➕ Inserting sample feedback for first 4 players in session 1...");
-      const sid = sessions[0].id;
-      const notes = [
-        "Good technique, work on pace transitions.",
-        "Improve endurance in second half.",
-        "Great vision, keep communication up.",
-        "Focus on first touch under pressure.",
-      ];
-      for (let i = 0; i < Math.min(4, players.length); i++) {
-        await query(
-          `INSERT INTO feedback (coach_id, player_id, session_id, notes) VALUES (?, ?, ?, ?)`,
-          [coachId, players[i].id, sid, notes[i]]
-        );
-      }
-    }
-
-    // Seed Survey
-    const svc = await query("SELECT COUNT(*) AS c FROM survey");
-    if ((svc[0]?.c || 0) === 0 && sessions.length > 0 && players.length > 0) {
-      console.log("  ➕ Inserting sample surveys for first 6 players in session 1...");
-      const sid = sessions[0].id;
-      for (let i = 0; i < Math.min(6, players.length); i++) {
-        const response = {
-          rating: 3 + (i % 3),
-          condition: ["Healthy", "Sore", "Recovering"][i % 3],
-          performance: ["Average", "Improved", "Excellent"][i % 3],
-          notes: `Autofeedback ${i + 1}`,
-        };
-        await query(
-          `INSERT INTO survey (player_id, session_id, response) VALUES (?, ?, ?)`,
-          [players[i].id, sid, JSON.stringify(response)]
-        );
-      }
-    }
-
-    console.log("🌱 Seeding complete.");
-  } catch (err) {
-    console.error("❌ Seeding failed:", err.message);
     throw err;
   }
 }
@@ -687,13 +530,23 @@ app.get("/sessions/:id", async (req, res) => {
 app.post("/performance", async (req, res) => {
   console.log("📊 Recording performance data...");
   try {
-    const { player_id, session_id, distance_meters, top_speed, avg_speed, acceleration, deceleration, heart_rate } = req.body;
-    console.log(`📝 Performance data for player ID: ${player_id}, session ID: ${session_id}`);
-    console.log(`   Distance: ${distance_meters}m, Top Speed: ${top_speed}, Heart Rate: ${heart_rate}`);
+    const { player_id, session_id, distance_meters, speed, acceleration, deceleration, heart_rate, cadence_spm } = req.body;
+
+    const playerId = toFiniteNumberOrNull(player_id);
+    const sessionId = toFiniteNumberOrNull(session_id);
+    const dist = toFiniteNumberOrNull(distance_meters);
+    const spd = toFiniteNumberOrNull(speed);
+    const accel = toFiniteNumberOrNull(acceleration);
+    const decel = toFiniteNumberOrNull(deceleration);
+    const hr = toFiniteNumberOrNull(heart_rate);
+    const cadence = toFiniteNumberOrNull(cadence_spm);
+
+    console.log(`📝 Performance data for player ID: ${playerId}, session ID: ${sessionId}`);
+    console.log(`   Distance: ${dist}m, Speed: ${spd}, HR: ${hr}, Cadence: ${cadence}`);
     
     const result = await query(
-      `INSERT INTO performance (player_id, session_id, distance_meters, top_speed, avg_speed, acceleration, deceleration, heart_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [player_id, session_id, distance_meters, top_speed, avg_speed, acceleration, deceleration, heart_rate]
+      `INSERT INTO performance (player_id, session_id, distance_meters, speed, acceleration, deceleration, cadence_spm, heart_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [playerId, sessionId, dist, spd, accel, decel, cadence, hr]
     );
     
     console.log(`✅ Performance data recorded with ID: ${result.insertId}`);
@@ -848,7 +701,6 @@ app.use((req, res) => {
    ------------------------- */
 console.log("\n🚀 Starting server initialization...");
 initDb()
-  .then(() => seedDb())
   .then(() => {
     app.listen(PORT, () => {
       console.log("\n" + "=".repeat(50));

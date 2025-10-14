@@ -168,7 +168,7 @@ fun SessionDetailsScreen(
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
                                 val count = report.performances.size
-                                val top = report.performances.mapNotNull { it.top_speed }.maxOrNull()
+                                val avgSpeed = report.performances.mapNotNull { it.speed }.average().takeIf { !it.isNaN() }
                                 val avgHr = report.performances.mapNotNull { it.heart_rate }.average().takeIf { !it.isNaN() }
 
                                 Row(
@@ -179,7 +179,7 @@ fun SessionDetailsScreen(
                                 ) {
                                     PerfStat(title = "Entries", value = "$count", modifier = Modifier.weight(1f))
                                     PerfStat(title = "Avg HR", value = avgHr?.let { "${"%.0f".format(it)} bpm" } ?: "-", modifier = Modifier.weight(1f))
-                                    PerfStat(title = "Top Speed", value = top?.let { "${"%.2f".format(it)}" } ?: "-", modifier = Modifier.weight(1f))
+                                    PerfStat(title = "Avg Speed", value = avgSpeed?.let { "${"%.2f".format(it)} m/s" } ?: "-", modifier = Modifier.weight(1f))
                                 }
                                 Spacer(Modifier.height(12.dp))
                             }
