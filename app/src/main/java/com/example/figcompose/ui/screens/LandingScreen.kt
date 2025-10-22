@@ -65,7 +65,7 @@ fun LandingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Track your progress",
+                    text = "Silver Strikers Fc",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 28.sp,

@@ -1,6 +1,8 @@
 package com.example.figcompose.util
 
 import android.content.Context
+import java.util.Locale
+import java.util.Calendar
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -122,14 +124,77 @@ class SessionManager(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 createState.value = CreateSessionState.Submitting
+                val prefs = context.getSharedPreferences("figcompose_auth", Context.MODE_PRIVATE)
+                val coachId: Int? = prefs.getLong("user_id", -1L).let { if (it > 0) it.toInt() else null }
+                fun pad(n: Int) = n.toString().padStart(2, '0')
+                val now = Calendar.getInstance()
+                val baseYear: Int
+                val baseMonth: Int
+                val baseDay: Int
+                if (date.isNotBlank()) {
+                    val parts = date.split("-")
+                    if (parts.size == 3) {
+                        baseYear = parts[0].toIntOrNull() ?: now.get(Calendar.YEAR)
+                        baseMonth = parts[1].toIntOrNull() ?: (now.get(Calendar.MONTH) + 1)
+                        baseDay = parts[2].toIntOrNull() ?: now.get(Calendar.DAY_OF_MONTH)
+                    } else {
+                        baseYear = now.get(Calendar.YEAR)
+                        baseMonth = now.get(Calendar.MONTH) + 1
+                        baseDay = now.get(Calendar.DAY_OF_MONTH)
+                    }
+                } else {
+                    baseYear = now.get(Calendar.YEAR)
+                    baseMonth = now.get(Calendar.MONTH) + 1
+                    baseDay = now.get(Calendar.DAY_OF_MONTH)
+                }
+
+                val startH: Int
+                val startMin: Int
+                if (startTime.isNotBlank()) {
+                    val tp = startTime.split(":")
+                    startH = tp.getOrNull(0)?.toIntOrNull() ?: now.get(Calendar.HOUR_OF_DAY)
+                    startMin = tp.getOrNull(1)?.toIntOrNull() ?: now.get(Calendar.MINUTE)
+                } else {
+                    startH = now.get(Calendar.HOUR_OF_DAY)
+                    startMin = now.get(Calendar.MINUTE)
+                }
+
+                val startCal = Calendar.getInstance()
+                startCal.set(baseYear, baseMonth - 1, baseDay, startH, startMin, 0)
+                startCal.set(Calendar.MILLISECOND, 0)
+
+                val endCal = (startCal.clone() as Calendar)
+                if (endTime.isNotBlank()) {
+                    val ep = endTime.split(":")
+                    val eh = ep.getOrNull(0)?.toIntOrNull() ?: startCal.get(Calendar.HOUR_OF_DAY)
+                    val em = ep.getOrNull(1)?.toIntOrNull() ?: startCal.get(Calendar.MINUTE)
+                    endCal.set(Calendar.HOUR_OF_DAY, eh)
+                    endCal.set(Calendar.MINUTE, em)
+                    endCal.set(Calendar.SECOND, 0)
+                    endCal.set(Calendar.MILLISECOND, 0)
+                } else {
+                    endCal.add(Calendar.HOUR_OF_DAY, 1)
+                }
+
+                val startTimeStr = "${startCal.get(Calendar.YEAR)}-${pad(startCal.get(Calendar.MONTH) + 1)}-${pad(startCal.get(Calendar.DAY_OF_MONTH))} ${pad(startCal.get(Calendar.HOUR_OF_DAY))}:${pad(startCal.get(Calendar.MINUTE))}:00"
+                val endTimeStr = "${endCal.get(Calendar.YEAR)}-${pad(endCal.get(Calendar.MONTH) + 1)}-${pad(endCal.get(Calendar.DAY_OF_MONTH))} ${pad(endCal.get(Calendar.HOUR_OF_DAY))}:${pad(endCal.get(Calendar.MINUTE))}:00"
                 val req = CreateSessionRequest(
+                    coach_id = coachId,
+                    title = name,
+                    session_type = type,
+                    // map UI fields
                     sessionName = name,
                     sessionType = type,
-                    date = date,
-                    startTime = startTime,
-                    endTime = endTime,
+                    date = date.ifBlank { null },
+                    startTime = if (startTime.isBlank()) null else startTime,
+                    endTime = if (endTime.isBlank()) null else endTime,
+                    // provide direct SQL datetime strings when available
+                    start_time = startTimeStr,
+                    end_time = endTimeStr,
                     location = location.ifBlank { null },
-                    notes = notes.ifBlank { null }
+                    notes = notes.ifBlank { null },
+                    // ensure server description is populated from notes
+                    description = notes.ifBlank { null }
                 )
                 val resp = api.createSession(req)
                 if (resp.isSuccessful) {
@@ -151,6 +216,27 @@ class SessionManager(private val context: Context) : ViewModel() {
                 onComplete(false, null, msg)
             }
         }
+    }
+
+    fun createSession(
+        name: String,
+        type: String,
+        startTime: String,
+        endTime: String,
+        location: String,
+        notes: String,
+        onComplete: (Boolean, Int?, String?) -> Unit = { _, _, _ -> }
+    ) {
+        createSession(
+            name = name,
+            type = type,
+            date = "",
+            startTime = startTime,
+            endTime = endTime,
+            location = location,
+            notes = notes,
+            onComplete = onComplete
+        )
     }
 
     fun loadReport(sessionId: Int, onComplete: (Boolean, String?) -> Unit = { _, _ -> }) {

@@ -106,7 +106,7 @@ fun ProfileScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        painter = painterResource(id = R.drawable.user),
                         contentDescription = null,
                         modifier = Modifier.size(64.dp)
                     )
@@ -122,7 +122,7 @@ fun ProfileScreen(
                     )
                 )
                 val role = loadedUser?.role ?: "player"
-                val team = "Titans" // Not provided by backend
+                val team = "Silver Strikers" // Not provided by backend
                 val position = "Forward" // Not provided by backend
                 Text(
                     text = "${role.replaceFirstChar { it.uppercase() }} • Team: $team",
@@ -153,7 +153,7 @@ fun ProfileScreen(
             // Team & Group (placeholder until backend supports team)
             SectionTitle("Team & Group")
             InfoCard {
-                InfoRow("Assigned Teams", "Titans")
+                InfoRow("Assigned Teams", "Silver Strikers")
             }
 
             // Actions

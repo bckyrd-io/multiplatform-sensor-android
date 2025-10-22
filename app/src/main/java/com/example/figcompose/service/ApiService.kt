@@ -106,6 +106,16 @@ interface ApiService {
      */
     @POST("survey")
     suspend fun submitSurvey(@Body req: SubmitSurveyRequest): Response<SubmitSurveyResponse>
+
+    
+    @GET("performance/{playerId}")
+    suspend fun getPlayerPerformance(@Path("playerId") playerId: Int): Response<List<PerformanceDto>>
+
+    @POST("performance")
+    suspend fun submitPerformance(@Body req: PerformanceRequest): Response<PerformanceResponse>
+
+    @POST("feedback")
+    suspend fun submitFeedback(@Body req: FeedbackRequest): Response<FeedbackResponse>
 }
 
 // ================ DTOs ================
@@ -219,7 +229,8 @@ data class FeedbackDto(
     val player_id: Int?,
     val session_id: Int?,
     val notes: String?,
-    val created_at: String?
+    val created_at: String?,
+    val coach_username: String? = null
 )
 
 /**
@@ -256,7 +267,34 @@ data class SubmitSurveyRequest(
     val response: Map<String, Any?>? = null
 )
 
+data class PerformanceRequest(
+    val player_id: Int,
+    val session_id: Int?,
+    val distance_meters: Double?,
+    val speed: Double?,
+    val acceleration: Double?,
+    val deceleration: Double?,
+    val cadence_spm: Double?
+)
+
+data class PerformanceResponse(
+    val success: Boolean,
+    val performanceId: Int?
+)
+
 data class SubmitSurveyResponse(
     val success: Boolean,
     val surveyId: Int?
+)
+
+data class FeedbackRequest(
+    val coach_id: Int?,
+    val player_id: Int,
+    val session_id: Int,
+    val notes: String?
+)
+
+data class FeedbackResponse(
+    val success: Boolean,
+    val feedbackId: Int?
 )

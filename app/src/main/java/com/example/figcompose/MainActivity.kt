@@ -40,6 +40,8 @@ sealed class Screen {
     data class SurveyFeedback(val playerId: Int, val playerName: String, val sessionId: Int? = null) : Screen()
     data class PlayerProgress(val playerId: Int, val playerName: String, val sessionId: Int? = null) : Screen()
     data class PlayerHome(val playerId: Int, val playerName: String) : Screen()
+    data class Metrics(val playerId: Int, val playerName: String, val sessionId: Int, val sessionTitle: String) : Screen()
+    data class CoachFeedback(val coachId: Int?, val playerId: Int, val playerName: String, val sessionId: Int) : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -124,13 +126,14 @@ class MainActivity : ComponentActivity() {
                         is Screen.SignUp -> {
                             SignUpScreen(
                                 onBack = { currentScreen.value = Screen.Landing },
-                                onSignUp = { name, email, password ,fullName ->
+                                onSignUp = { name, email, password ,fullName, phone ->
                                     coroutineScope.launch {
                                         authManager.register(
                                             username = name,
                                             email = email,
                                             password = password,
-                                            fullName = fullName
+                                            fullName = fullName,
+                                            phone = phone
                                         ) { success, errorMessage ->
                                             if (success) {
                                                 val user = authManager.currentUser.value
@@ -207,12 +210,11 @@ class MainActivity : ComponentActivity() {
                         is Screen.CreateSession -> {
                             CreateSessionScreen(
                                 onBack = { currentScreen.value = Screen.Dashboard },
-                                onCreateSession = { name, type, date, startTime, endTime, location, notes ->
+                                onCreateSession = { name, type, startTime, endTime, location, notes ->
                                     coroutineScope.launch {
                                         sessionManager.createSession(
                                             name = name,
                                             type = type,
-                                            date = date,
                                             startTime = startTime,
                                             endTime = endTime,
                                             location = location,
@@ -237,6 +239,12 @@ class MainActivity : ComponentActivity() {
                                     val role = authManager.currentUser.value?.get("role") as? String
                                     if (role == "player") currentScreen.value = Screen.PlayerHome(screen.playerId, screen.playerName)
                                     else currentScreen.value = Screen.Dashboard
+                                },
+                                canAddFeedback = (authManager.currentUser.value?.get("role") as? String) == "coach",
+                                onAddFeedback = {
+                                    val coachId = (authManager.currentUser.value?.get("id") as? Number)?.toInt()
+                                    val sid = screen.sessionId ?: return@PlayerProgressScreen
+                                    currentScreen.value = Screen.CoachFeedback(coachId, screen.playerId, screen.playerName, sid)
                                 }
                             )
                         }
@@ -258,7 +266,30 @@ class MainActivity : ComponentActivity() {
                                 onSettings = {
                                     authManager.logout()
                                     currentScreen.value = Screen.Landing
+                                },
+                                onOpenMetrics = { sid, stitle ->
+                                    currentScreen.value = Screen.Metrics(screen.playerId, screen.playerName, sid, stitle)
                                 }
+                            )
+                        }
+                        is Screen.Metrics -> {
+                            MetricsScreen(
+                                playerId = screen.playerId,
+                                playerName = screen.playerName,
+                                sessionId = screen.sessionId,
+                                sessionTitle = screen.sessionTitle,
+                                onBack = { currentScreen.value = Screen.PlayerHome(screen.playerId, screen.playerName) },
+                                onDone = { currentScreen.value = Screen.PlayerHome(screen.playerId, screen.playerName) }
+                            )
+                        }
+                        is Screen.CoachFeedback -> {
+                            CoachFeedbackScreen(
+                                coachId = screen.coachId,
+                                playerId = screen.playerId,
+                                playerName = screen.playerName,
+                                sessionId = screen.sessionId,
+                                onBack = { currentScreen.value = Screen.PlayerProgress(screen.playerId, screen.playerName, screen.sessionId) },
+                                onSubmitted = { currentScreen.value = Screen.PlayerProgress(screen.playerId, screen.playerName, screen.sessionId) }
                             )
                         }
                     }
@@ -285,7 +316,7 @@ fun PreviewCreateSessionScreen() {
     FigcomposeTheme {
         CreateSessionScreen(
             onBack = {},
-            onCreateSession = { _, _, _, _, _, _, _ -> }
+            onCreateSession = { _, _, _, _, _, _ -> }
         )
     }
 }

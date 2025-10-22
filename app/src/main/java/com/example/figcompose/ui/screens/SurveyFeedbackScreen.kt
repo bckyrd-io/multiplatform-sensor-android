@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.FigcomposeTheme
 import com.example.figcompose.ui.theme.TextPrimary
@@ -132,15 +133,19 @@ fun SurveyFeedbackScreen(
 
             Button(
                 onClick = {
-                    surveyManager.submit(
-                        playerId = playerId,
-                        sessionId = sessionId,
-                        rating = rating,
-                        condition = selectedCondition.label,
-                        performance = performance.title,
-                        notes = notes
-                    ) { success, _ ->
-                        if (success) onSubmitSuccess()
+                    if (sessionId == null) {
+                        Toast.makeText(context, "Sessions are not created", Toast.LENGTH_SHORT).show()
+                    } else {
+                        surveyManager.submit(
+                            playerId = playerId,
+                            sessionId = sessionId,
+                            rating = rating,
+                            condition = selectedCondition.label,
+                            performance = performance.title,
+                            notes = notes
+                        ) { success, _ ->
+                            if (success) onSubmitSuccess()
+                        }
                     }
                 },
                 modifier = Modifier

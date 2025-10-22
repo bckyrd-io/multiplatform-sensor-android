@@ -23,8 +23,9 @@ import com.example.figcompose.ui.theme.TextPrimary
 @Composable
 fun SignUpScreen(
     onBack: () -> Unit = {},
-    onSignUp: (String, String, String, String) -> Unit = { _, _, _, _ -> }
+    onSignUp: (String, String, String, String, String) -> Unit = { _, _, _, _, _ -> }
 ) {
+    var username by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -67,7 +68,16 @@ fun SignUpScreen(
             verticalArrangement = Arrangement.Center
         ) {
             
-            // Full Name Field
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -115,9 +125,8 @@ fun SignUpScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Sign Up Button
             Button(
-                onClick = { onSignUp(fullName, email, phone, password) },
+                onClick = { onSignUp(username, email, password, fullName, phone) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

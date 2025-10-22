@@ -25,7 +25,9 @@ fun PlayerProgressScreen(
     playerId: Int,
     playerName: String = "",
     sessionId: Int? = null,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    canAddFeedback: Boolean = false,
+    onAddFeedback: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val sessionManager = remember(context) { SessionManager(context) }
@@ -101,17 +103,99 @@ fun PlayerProgressScreen(
                         )
                     }
 
-                    Text(
-                        text = "Performance Metrics (${playerName})",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        ),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Performance Metrics (${playerName})",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                        )
+                    }
 
-                    val perf = report.performances.filter { it.player_id == playerId && (sessionId == null || it.session_id == sessionId) }
-                    MetricsCard(perf)
+                    val perf = report.performances.filter { 
+                        it.player_id == playerId && 
+                        (sessionId == null || it.session_id == sessionId) 
+                    }
+                    val feedback = report.feedback?.firstOrNull { 
+                        it.player_id == playerId && 
+                        (sessionId == null || it.session_id == sessionId) 
+                    }
+                    
+                    if (perf.isNotEmpty()) {
+                        MetricsCard(perf)
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "No performance data available",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+
+                    if (feedback != null) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Coach Feedback",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            ),
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Surface(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFFF8FAFC)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = "Feedback from: ${feedback.coach_username ?: "Coach"}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = TextPrimary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = feedback.notes ?: "No notes provided",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (canAddFeedback && feedback == null) {
+                        OutlinedButton(
+                            onClick = onAddFeedback,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = BluePrimary
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Text("Add Feedback")
+                        }
+                    }
                 }
                 else -> {
                     if (sessionId == null) {

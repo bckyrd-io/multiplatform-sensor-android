@@ -70,13 +70,7 @@ class AuthManager(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 authState.value = AuthState.Loading
-                
-                val isEmail = identifier.contains("@")
-                val response = if (isEmail) {
-                    apiService.login(email = identifier, password = password)
-                } else {
-                    apiService.login(username = identifier, password = password)
-                }
+                val response = apiService.login(username = identifier, password = password)
                 
                 if (response.isSuccessful && response.body()?.success == true) {
                     val userJson = response.body()?.user
@@ -148,8 +142,7 @@ class AuthManager(private val context: Context) : ViewModel() {
                 )
                 
                 if (response.isSuccessful) {
-                    // Automatically log in after successful registration
-                    login(email, password, onComplete)
+                    login(username, password, onComplete)
                 } else {
                     val errorMessage = response.errorBody()?.string()?.let {
                         try {

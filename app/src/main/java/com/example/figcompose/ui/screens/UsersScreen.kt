@@ -163,7 +163,7 @@ private fun PlayerRow(player: Player, onClick: () -> Unit) {
         ) {
             // If you add real avatars, replace this with AsyncImage/coil. Using a person icon placeholder.
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.user),
                 contentDescription = null,
                 modifier = Modifier.size(28.dp)
             )

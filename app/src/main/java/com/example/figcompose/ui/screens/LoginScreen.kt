@@ -28,7 +28,7 @@ fun LoginScreen(
     onBack: () -> Unit = {},
     onLogin: (String, String) -> Unit = { _, _ -> }
 ) {
-    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Scaffold(
@@ -68,19 +68,16 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             
-            // Email Field
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                singleLine = true
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -93,9 +90,8 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Login Button
             Button(
-                onClick = { onLogin(email, password) },
+                onClick = { onLogin(username, password) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

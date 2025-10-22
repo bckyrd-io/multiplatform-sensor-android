@@ -17,7 +17,7 @@
  * MYSQL_PORT=3306
  * MYSQL_USER=root
  * MYSQL_PASSWORD=
- * MYSQL_DATABASE=perf_db
+ * MYSQL_DATABASE=silver_strikers_db
  *
  * Run: node server.js
  */
@@ -37,7 +37,7 @@ const PORT = process.env.PORT || 4000;
 console.log("🔧 Initializing server configuration...");
 console.log(`📋 Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`🔌 Port: ${PORT}`);
-console.log(`🗄️  Database: ${process.env.MYSQL_DATABASE || "perf_db"}`);
+console.log(`🗄️  Database: ${process.env.MYSQL_DATABASE || "silver_strikers_db"}`);
 console.log(`🏠 MySQL Host: ${process.env.MYSQL_HOST || "127.0.0.1"}:${process.env.MYSQL_PORT || 3306}`);
 
 const pool = mysql.createPool({
@@ -45,7 +45,7 @@ const pool = mysql.createPool({
   port: process.env.MYSQL_PORT || 3306,
   user: process.env.MYSQL_USER || "root",
   password: process.env.MYSQL_PASSWORD || "",
-  database: process.env.MYSQL_DATABASE || "perf_db",
+  database: process.env.MYSQL_DATABASE || "silver_strikers_db",
 });
 
 async function query(sql, params = []) {
@@ -657,8 +657,14 @@ app.get("/reports/:sessionId", async (req, res) => {
     console.log("  🏃 Fetching performance data...");
     const perf = await query(`SELECT * FROM performance WHERE session_id = ?`, [sessionId]);
     
-    console.log("  💬 Fetching feedback...");
-    const feedback = await query(`SELECT * FROM feedback WHERE session_id = ?`, [sessionId]);
+    console.log("  💬 Fetching feedback (with coach usernames)...");
+    const feedback = await query(
+      `SELECT f.*, u.username AS coach_username
+       FROM feedback f
+       LEFT JOIN users u ON u.id = f.coach_id
+       WHERE f.session_id = ?`,
+      [sessionId]
+    );
     
     console.log("  📝 Fetching survey responses...");
     const survey = await query(`SELECT * FROM survey WHERE session_id = ?`, [sessionId]);
