@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
             val currentScreen = remember { mutableStateOf<Screen>(Screen.Landing) }
             var showErrorDialog by remember { mutableStateOf<String?>(null) }
             val coroutineScope = rememberCoroutineScope()
-            
+
             // Check auth state when the app starts
             LaunchedEffect(Unit) {
                 authManager.checkAuthState()
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                     currentScreen.value = if (role == "player") Screen.PlayerHome(id, name) else Screen.Dashboard
                 }
             }
-            
+
             // Show error dialog if there's an error
             showErrorDialog?.let { errorMessage ->
                 AlertDialog(
@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
                     }
                 )
             }
-            
+
             FigcomposeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -162,23 +162,12 @@ class MainActivity : ComponentActivity() {
                                 onUsersClick = { currentScreen.value = Screen.Users }
                             )
                         }
-                        is Screen.Profile -> {
-                            com.example.figcompose.ui.screens.ProfileScreen(
-                                playerId = screen.playerId,
-                                playerName = screen.playerName,
-                                onBack = { currentScreen.value = Screen.Users },
-                                onEdit = { currentScreen.value = Screen.EditProfile(screen.playerId, screen.playerName) },
-                                onSubmitFeedback = { currentScreen.value = Screen.SurveyFeedback(screen.playerId, screen.playerName, null) },
-                                showEdit = true,
-                                showSubmitFeedback = false
-                            )
-                        }
                         is Screen.EditProfile -> {
                             com.example.figcompose.ui.screens.EditProfileScreen(
                                 playerId = screen.playerId,
-                                onBack = { currentScreen.value = Screen.Profile(screen.playerId, screen.playerName) },
+                                onBack = { currentScreen.value = Screen.Users },
                                 onSaved = { updatedName ->
-                                    currentScreen.value = Screen.Profile(screen.playerId, updatedName)
+                                    currentScreen.value = Screen.Users
                                 }
                             )
                         }
@@ -190,12 +179,12 @@ class MainActivity : ComponentActivity() {
                                 onBack = {
                                     val role = authManager.currentUser.value?.get("role") as? String
                                     if (role == "player") currentScreen.value = Screen.PlayerHome(screen.playerId, screen.playerName)
-                                    else currentScreen.value = Screen.Profile(screen.playerId, screen.playerName)
+                                    else currentScreen.value = Screen.Users
                                 },
                                 onSubmitSuccess = {
                                     val role = authManager.currentUser.value?.get("role") as? String
                                     if (role == "player") currentScreen.value = Screen.PlayerHome(screen.playerId, screen.playerName)
-                                    else currentScreen.value = Screen.Profile(screen.playerId, screen.playerName)
+                                    else currentScreen.value = Screen.Users
                                 }
                             )
                         }
@@ -203,7 +192,7 @@ class MainActivity : ComponentActivity() {
                             UsersScreen(
                                 onBack = { currentScreen.value = Screen.Dashboard },
                                 onUserSelected = { playerId, playerName ->
-                                    currentScreen.value = Screen.Profile(playerId, playerName)
+                                    currentScreen.value = Screen.EditProfile(playerId, playerName)
                                 }
                             )
                         }
@@ -291,6 +280,10 @@ class MainActivity : ComponentActivity() {
                                 onBack = { currentScreen.value = Screen.PlayerProgress(screen.playerId, screen.playerName, screen.sessionId) },
                                 onSubmitted = { currentScreen.value = Screen.PlayerProgress(screen.playerId, screen.playerName, screen.sessionId) }
                             )
+                        }
+                        else -> {
+                            // Handle any other screen case, fallback to Dashboard
+                            currentScreen.value = Screen.Dashboard
                         }
                     }
                 }

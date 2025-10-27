@@ -4,10 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -71,7 +74,7 @@ fun SessionDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
                             contentDescription = "Back"
                         )
                     }
@@ -160,39 +163,19 @@ fun SessionDetailsScreen(
                         is ReportState.Loaded -> {
                             val report = r.report
 
-                            // Performance section (summary cards)
-                            if (report.performances.isNotEmpty()) {
-                                Text(
-                                    text = "Performance Summary",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = TextPrimary
-                                    ),
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                )
-                                val count = report.performances.size
-                                val avgSpeed = report.performances.mapNotNull { it.speed }.average().takeIf { !it.isNaN() }
-                                val avgHr = report.performances.mapNotNull { it.heart_rate }.average().takeIf { !it.isNaN() }
-
-                                Row(
-                                    modifier = Modifier
-                                        .padding(horizontal = 16.dp)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    PerfStat(title = "Entries", value = "$count", modifier = Modifier.weight(1f))
-                                    PerfStat(title = "Avg HR", value = avgHr?.let { "${"%.0f".format(it)} bpm" } ?: "-", modifier = Modifier.weight(1f))
-                                    PerfStat(title = "Avg Speed", value = avgSpeed?.let { "${"%.2f".format(it)} m/s" } ?: "-", modifier = Modifier.weight(1f))
+                            // Build participants from union of survey, performances, and feedback
+                            val surveyByPlayer = remember(report) { report.survey.associateBy { it.player_id ?: -1 } }
+                            val participantIds = remember(report) {
+                                buildSet {
+                                    report.survey.mapNotNull { it.player_id }.forEach { add(it) }
+                                    report.performances.mapNotNull { it.player_id }.forEach { add(it) }
+                                    report.feedback.mapNotNull { it.player_id }.forEach { add(it) }
                                 }
-                                Spacer(Modifier.height(12.dp))
                             }
 
-                            // Coach feedback section intentionally removed per requirements
-
-                            // Player Survey Feedback
-                            if (report.survey.isNotEmpty()) {
+                            if (participantIds.isNotEmpty()) {
                                 Text(
-                                    text = "Player Survey Feedback",
+                                    text = "Players",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.SemiBold,
                                         color = TextPrimary
@@ -200,15 +183,14 @@ fun SessionDetailsScreen(
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
 
-                                report.survey.take(20).forEach { sv ->
-                                    val resp = sv.response ?: emptyMap()
+                                participantIds.take(50).forEach { pid ->
+                                    val sv = surveyByPlayer[pid]
+                                    val resp = sv?.response ?: emptyMap()
                                     val rating = resp["rating"]?.toString() ?: "-"
                                     val condition = resp["condition"]?.toString()?.trim()
                                     val performance = resp["performance"]?.toString()?.trim()
-
                                     val ratingDisplay = if (rating == "-") "-" else "$rating/5"
-
-                                    val displayName = idToName[sv.player_id ?: -1] ?: "Player #${sv.player_id ?: "?"}"
+                                    val displayName = idToName[pid] ?: "Player #$pid"
 
                                     val conditionColor = when (condition?.lowercase()) {
                                         "healthy" -> Color(0xFFD1FAE5)
@@ -232,7 +214,7 @@ fun SessionDetailsScreen(
                                         name = displayName,
                                         rating = ratingDisplay,
                                         tags = tags,
-                                        onClick = { onPlayerSelected(sv.player_id ?: -1, displayName, session.id) }
+                                        onClick = { onPlayerSelected(pid, displayName, session.id) }
                                     )
                                 }
                             }
@@ -267,6 +249,7 @@ private fun PerfStat(title: String, value: String, modifier: Modifier = Modifier
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PlayerRow(
     name: String,
@@ -282,40 +265,58 @@ private fun PlayerRow(
         shape = RoundedCornerShape(16.dp),
         color = Color(0xFFF8FAFC)
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE5E7EB)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.user),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE5E7EB)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.user),
+                        contentDescription = null,
+                        modifier = Modifier.size(34.dp)
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    name,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Outlined.KeyboardArrowRight,
+                    contentDescription = "Go to details",
+                    tint = TextSecondary
                 )
             }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(name, style = MaterialTheme.typography.titleMedium.copy(color = TextPrimary, fontWeight = FontWeight.Medium))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Spacer(Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text("⭐ $rating") },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = Color(0xFFFFF3C4),
+                        labelColor = TextPrimary
+                    )
+                )
+                tags.forEach { (t, bg) ->
                     AssistChip(
                         onClick = {},
-                        label = { Text("⭐ $rating") },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = Color(0xFFFFF3C4), labelColor = TextPrimary)
-                    )
-                    tags.forEach { (t, bg) ->
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(t) },
-                            colors = AssistChipDefaults.assistChipColors(containerColor = bg, labelColor = TextPrimary)
+                        label = { Text(t) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = bg,
+                            labelColor = TextPrimary
                         )
-                    }
+                    )
                 }
             }
         }

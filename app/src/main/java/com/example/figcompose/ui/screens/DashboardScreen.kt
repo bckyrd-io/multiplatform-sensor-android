@@ -11,7 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.DateRange
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,11 +22,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.example.figcompose.ui.theme.*
 import com.example.figcompose.util.DashboardManager
 import com.example.figcompose.util.DashboardState
@@ -49,6 +57,7 @@ fun DashboardScreen(
 
     val sessions = (state as? DashboardState.Loaded)?.sessions.orEmpty()
     val users = (state as? DashboardState.Loaded)?.users.orEmpty()
+    val pps = (state as? DashboardState.Loaded)?.playersPerSession.orEmpty()
 
     Scaffold(
         topBar = {
@@ -67,7 +76,7 @@ fun DashboardScreen(
                 navigationIcon = {
                     IconButton(onClick = onSettings) {
                         Icon(
-                            imageVector = Icons.Outlined.Settings,
+                            imageVector = Icons.Outlined.Person,
                             contentDescription = "Settings",
                             tint = Color(0xFF6B7280)
                         )
@@ -107,6 +116,11 @@ fun DashboardScreen(
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
             item {
+                PerformanceCard(
+                    data = pps,
+                    isLoading = state is DashboardState.Loading
+                )
+                Spacer(Modifier.height(16.dp))
                 // Overview header
                 Text(
                     text = "Overview",
@@ -123,10 +137,9 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     StatCard(title = "Sessions", value = sessions.size.toString(), modifier = Modifier.weight(1f))
-                    StatCard(title = "Users", value = users.size.toString(), modifier = Modifier.weight(1f), onClick = onUsersClick)
+                    StatCard(title = "Profiles", value = users.size.toString(), modifier = Modifier.weight(1f), onClick = onUsersClick)
                 }
-                Spacer(Modifier.height(16.dp))
-                PerformanceCard()
+
                 Spacer(Modifier.height(16.dp))
                 Text(
                     text = "Active Sessions",
@@ -214,7 +227,10 @@ private fun LegendDot(color: Color) {
 }
 
 @Composable
-private fun PerformanceCard() {
+private fun PerformanceCard(
+    data: List<com.example.figcompose.service.PlayersPerSessionDto>,
+    isLoading: Boolean
+) {
     Surface(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -224,24 +240,17 @@ private fun PerformanceCard() {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Performance",
+                text = "Players per session",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
             )
-            Spacer(Modifier.height(12.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LegendDot(BluePrimary)
-                Text(
-                    text = "  Player  ",
-                    style = MaterialTheme.typography.labelMedium.copy(color = TextPrimary)
-                )
-                LegendDot(Color(0xFFD1D5DB))
-                Text(
-                    text = "  Session",
-                    style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary)
-                )
+            if (isLoading) {
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator(color = BluePrimary)
+                }
             }
             Spacer(Modifier.height(12.dp))
             Box(
@@ -251,48 +260,71 @@ private fun PerformanceCard() {
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.White)
             ) {
-                // Simple grid + line illustration
-                Canvas(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp)) {
-                    val w = size.width
-                    val h = size.height
-                    val gridColor = Color(0xFFE5E7EB)
-                    // vertical grid
-                    val cols = 6
-                    for (i in 1 until cols) {
-                        val x = w * i / cols
-                        drawLine(gridColor, Offset(x, 0f), Offset(x, h), strokeWidth = 1f)
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    factory = { context ->
+                        LineChart(context).apply {
+                            description.isEnabled = false
+                            setTouchEnabled(true)
+                            isDragEnabled = true
+                            setScaleEnabled(true)
+                            setPinchZoom(true)
+                            axisRight.isEnabled = false
+                            legend.isEnabled = false
+                            xAxis.position = XAxis.XAxisPosition.BOTTOM
+                            xAxis.setDrawGridLines(true)
+                            axisLeft.setDrawGridLines(true)
+                        }
+                    },
+                    update = { chart ->
+                        val items = if (data.isEmpty()) emptyList() else data.take(10).asReversed()
+                        if (items.isEmpty()) {
+                            chart.data = null
+                            chart.invalidate()
+                            return@AndroidView
+                        }
+
+                        val entries = items.mapIndexed { index, item ->
+                            Entry(index.toFloat(), item.players_count.toFloat())
+                        }
+                        // Session labels: short title or fallback to S#ID
+                        val labels = items.map { s ->
+                            s.session_title?.take(12)?.ifBlank { "S#${s.session_id}" } ?: "S#${s.session_id}"
+                        }
+
+                        val color = BluePrimary.toArgb()
+                        val set = LineDataSet(entries, "Players").apply {
+                            setDrawFilled(true)
+                            setDrawValues(false)
+                            setColor(color)
+                            setCircleColor(color)
+                            lineWidth = 2.5f
+                            circleRadius = 3.5f
+                            mode = LineDataSet.Mode.CUBIC_BEZIER
+                            fillColor = color
+                            fillAlpha = 60
+                        }
+
+                        chart.xAxis.apply {
+                            valueFormatter = IndexAxisValueFormatter(labels)
+                            granularity = 1f
+                            setLabelCount(labels.size, true)
+                            labelRotationAngle = -25f
+                        }
+                        chart.axisLeft.axisMinimum = 0f
+                        chart.data = LineData(set)
+                        chart.invalidate()
                     }
-                    // horizontal grid
-                    val rows = 4
-                    for (i in 1 until rows) {
-                        val y = h * i / rows
-                        drawLine(gridColor, Offset(0f, y), Offset(w, y), strokeWidth = 1f)
-                    }
-                    // gray session line
-                    val sessionPath = Path().apply {
-                        moveTo(0f, h * 0.5f)
-                        cubicTo(w*0.2f, h*0.45f, w*0.35f, h*0.6f, w*0.5f, h*0.55f)
-                        cubicTo(w*0.65f, h*0.5f, w*0.8f, h*0.45f, w, h*0.5f)
-                    }
-                    drawPath(
-                        sessionPath,
-                        color = Color(0xFFCBD5E1),
-                        style = Stroke(width = 5f, cap = StrokeCap.Round)
-                    )
-                    // blue player line
-                    val playerPath = Path().apply {
-                        moveTo(0f, h * 0.7f)
-                        cubicTo(w*0.15f, h*0.8f, w*0.3f, h*0.55f, w*0.45f, h*0.65f)
-                        cubicTo(w*0.6f, h*0.75f, w*0.8f, h*0.35f, w, h*0.7f)
-                    }
-                    drawPath(
-                        playerPath,
-                        color = BluePrimary,
-                        style = Stroke(width = 6f, cap = StrokeCap.Round)
-                    )
-                }
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            if (data.isEmpty() && !isLoading) {
+                Text(
+                    text = "No attendance yet",
+                    style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary)
+                )
             }
         }
     }

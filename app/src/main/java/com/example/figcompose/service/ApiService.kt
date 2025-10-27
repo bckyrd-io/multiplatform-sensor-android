@@ -116,6 +116,12 @@ interface ApiService {
 
     @POST("feedback")
     suspend fun submitFeedback(@Body req: FeedbackRequest): Response<FeedbackResponse>
+
+    @GET("analytics/sessions-per-player")
+    suspend fun getSessionsPerPlayer(): Response<List<SessionsPerPlayerDto>>
+
+    @GET("analytics/players-per-session")
+    suspend fun getPlayersPerSession(): Response<List<PlayersPerSessionDto>>
 }
 
 // ================ DTOs ================
@@ -163,6 +169,18 @@ data class SessionDto(
     val end_time: String?,
     val session_type: String?,
     val location: String?
+)
+
+data class SessionsPerPlayerDto(
+    val player_id: Int,
+    val player_name: String?,
+    val sessions_count: Int
+)
+
+data class PlayersPerSessionDto(
+    val session_id: Int,
+    val session_title: String?,
+    val players_count: Int
 )
 
 /**

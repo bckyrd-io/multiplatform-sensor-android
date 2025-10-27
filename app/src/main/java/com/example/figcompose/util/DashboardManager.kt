@@ -8,6 +8,8 @@ import com.example.figcompose.service.ApiService
 import com.example.figcompose.service.RetrofitProvider
 import com.example.figcompose.service.SessionDto
 import com.example.figcompose.service.UserDto
+import com.example.figcompose.service.SessionsPerPlayerDto
+import com.example.figcompose.service.PlayersPerSessionDto
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -20,6 +22,8 @@ sealed class DashboardState {
     data class Loaded(
         val sessions: List<SessionDto>,
         val users: List<UserDto>,
+        val sessionsPerPlayer: List<SessionsPerPlayerDto>,
+        val playersPerSession: List<PlayersPerSessionDto>,
     ) : DashboardState() {
         val sessionCount: Int get() = sessions.size
         val userCount: Int get() = users.size
@@ -39,14 +43,25 @@ class DashboardManager(private val context: Context) : ViewModel() {
 
                 val sessionsDeferred = async { api.getSessions() }
                 val usersDeferred = async { api.getUsers(limit = 200) }
+                val sppDeferred = async { api.getSessionsPerPlayer() }
+                val ppsDeferred = async { api.getPlayersPerSession() }
 
                 val sessionsResp = sessionsDeferred.await()
                 val usersResp = usersDeferred.await()
+                val sppResp = sppDeferred.await()
+                val ppsResp = ppsDeferred.await()
 
-                if (sessionsResp.isSuccessful && usersResp.isSuccessful) {
+                if (sessionsResp.isSuccessful && usersResp.isSuccessful && sppResp.isSuccessful && ppsResp.isSuccessful) {
                     val sessions = sessionsResp.body().orEmpty()
                     val users = usersResp.body().orEmpty()
-                    state.value = DashboardState.Loaded(sessions = sessions, users = users)
+                    val spp = sppResp.body().orEmpty()
+                    val pps = ppsResp.body().orEmpty()
+                    state.value = DashboardState.Loaded(
+                        sessions = sessions,
+                        users = users,
+                        sessionsPerPlayer = spp,
+                        playersPerSession = pps
+                    )
                     onComplete(true, null)
                 } else {
                     val errorMsg = buildString {
@@ -56,6 +71,14 @@ class DashboardManager(private val context: Context) : ViewModel() {
                         if (!usersResp.isSuccessful) {
                             if (isNotEmpty()) append("; ")
                             append(parseErrorBody(usersResp.errorBody()?.string()))
+                        }
+                        if (!sppResp.isSuccessful) {
+                            if (isNotEmpty()) append("; ")
+                            append(parseErrorBody(sppResp.errorBody()?.string()))
+                        }
+                        if (!ppsResp.isSuccessful) {
+                            if (isNotEmpty()) append("; ")
+                            append(parseErrorBody(ppsResp.errorBody()?.string()))
                         }
                     }.ifBlank { "Failed to fetch dashboard data" }
                     state.value = DashboardState.Error(errorMsg)

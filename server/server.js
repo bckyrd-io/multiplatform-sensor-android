@@ -689,6 +689,37 @@ app.get("/reports/:sessionId", async (req, res) => {
   }
 });
 
+app.get("/analytics/sessions-per-player", async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT u.id AS player_id, COALESCE(u.full_name, u.username) AS player_name, COUNT(DISTINCT p.session_id) AS sessions_count
+       FROM users u
+       LEFT JOIN performance p ON p.player_id = u.id
+       WHERE u.role = 'player'
+       GROUP BY u.id, u.full_name, u.username
+       ORDER BY sessions_count DESC, player_name ASC`
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/analytics/players-per-session", async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT s.id AS session_id, s.title AS session_title, COUNT(DISTINCT p.player_id) AS players_count
+       FROM sessions s
+       LEFT JOIN performance p ON p.session_id = s.id
+       GROUP BY s.id, s.title
+       ORDER BY s.start_time DESC, s.id DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(`💥 Unhandled error: ${err.message}`);

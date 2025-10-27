@@ -13,7 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,11 +46,15 @@ import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
 import com.example.figcompose.util.RequestMetricsPermissions
-import com.example.figcompose.util.rememberAccelerometer
+import com.example.figcompose.util.AccelReading
+import com.example.figcompose.util.rememberAccelerationReading
 import com.example.figcompose.util.rememberStepCounter
+import com.example.figcompose.util.GpsData
+import com.example.figcompose.util.rememberGpsLocation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,10 +68,26 @@ fun MetricsScreen(
 ) {
     val context = LocalContext.current
 
-    RequestMetricsPermissions()
+    var hasActivityPermission by remember { mutableStateOf(false) }
+    var hasLocationPermission by remember { mutableStateOf(false) }
+    RequestMetricsPermissions(
+        onPermissionsGranted = {
+            hasActivityPermission = true
+            hasLocationPermission = true
+        },
+        onPermissionsChanged = { activity, location ->
+            hasActivityPermission = activity
+            hasLocationPermission = location
+        }
+    )
 
-    val steps = rememberStepCounter()
-    val accelMag = rememberAccelerometer()
+    val steps = if (hasActivityPermission) rememberStepCounter() else 0
+    val accel: AccelReading = rememberAccelerationReading()
+    val gps: GpsData = if (hasLocationPermission) rememberGpsLocation() else GpsData()
+    val currentSteps by rememberUpdatedState(steps)
+    val currentAccel by rememberUpdatedState(accel)
+    val currentGps by rememberUpdatedState(gps)
+    val currentHasLocation by rememberUpdatedState(hasLocationPermission)
     val scope = rememberCoroutineScope()
 
     var elapsed by remember { mutableStateOf(0) }
@@ -88,12 +110,27 @@ fun MetricsScreen(
         while (true) {
             delay(1000)
             elapsed += 1
-            distance = steps * 0.75
-            speed = if (elapsed > 0) distance / elapsed else 0.0
-            cadence = if (elapsed > 0) (steps.toDouble() / elapsed) * 60.0 else 0.0
-            val delta = (accelMag - 9.8).toDouble()
-            acceleration = kotlin.math.max(0.0, delta)
-            deceleration = kotlin.math.min(0.0, delta).absoluteValue
+            val distanceFromSteps = currentSteps * 0.75
+            val distanceFromGps = currentGps.distance.toDouble()
+            val speedFromGps = currentGps.speed.toDouble()
+
+            if (currentHasLocation && (distanceFromGps > 0.0 || speedFromGps > 0.0)) {
+                distance = distanceFromGps
+                speed = speedFromGps
+            } else {
+                distance = distanceFromSteps
+                speed = if (elapsed > 0) distanceFromSteps / elapsed else 0.0
+            }
+            cadence = if (elapsed > 0) (currentSteps.toDouble() / elapsed) * 60.0 else 0.0
+
+            val ax = currentAccel.x
+            val ay = currentAccel.y
+            val az = currentAccel.z
+            val magnitude = sqrt(ax * ax + ay * ay + az * az)
+            val value = if (currentAccel.isLinear) magnitude.toDouble() else kotlin.math.max(0.0, magnitude.toDouble() - 9.81)
+            acceleration = value
+            // For deceleration, we could track negative changes; here we use a simple heuristic
+            deceleration = 0.0
 
             sumCadence += cadence
             sumAccel += acceleration
@@ -143,7 +180,7 @@ fun MetricsScreen(
                 title = {
                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = sessionTitle.ifBlank { "Metrics" },
+                            text = "Metrics",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 color = TextPrimary
@@ -153,7 +190,7 @@ fun MetricsScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -173,7 +210,7 @@ fun MetricsScreen(
             Column(Modifier.fillMaxWidth()) {
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Player: $playerName",
+                    text =  sessionTitle,
                     style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
                 )
                 Spacer(Modifier.height(8.dp))

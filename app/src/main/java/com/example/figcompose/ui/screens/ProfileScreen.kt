@@ -133,7 +133,6 @@ fun ProfileScreen(
             Spacer(Modifier.height(24.dp))
 
             // Personal Information
-            SectionTitle("Personal Information")
             InfoCard {
                 InfoRow("Name", (state as? PlayerProfileState.Loaded)?.user?.full_name ?: playerName)
                 Divider(color = Color(0xFFE5E7EB))
@@ -143,17 +142,10 @@ fun ProfileScreen(
             }
 
             // Contact Details
-            SectionTitle("Contact Details")
             InfoCard {
                 InfoRow("Email", (state as? PlayerProfileState.Loaded)?.user?.email ?: "-")
                 Divider(color = Color(0xFFE5E7EB))
                 InfoRow("Phone", (state as? PlayerProfileState.Loaded)?.user?.phone ?: "-")
-            }
-
-            // Team & Group (placeholder until backend supports team)
-            SectionTitle("Team & Group")
-            InfoCard {
-                InfoRow("Assigned Teams", "Silver Strikers")
             }
 
             // Actions
