@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -110,7 +111,7 @@ fun PlayerProgressScreen(
             when (val rs = reportState) {
                 is ReportState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = BluePrimary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
                 is ReportState.Error -> {
@@ -128,7 +129,7 @@ fun PlayerProgressScreen(
                         text = "Session: ${session?.title ?: (session?.id?.let { "Session #$it" } ?: (sessionId?.let { "Session #$it" } ?: "-"))}",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = BluePrimary
+                            color = MaterialTheme.colorScheme.primary
                         ),
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
                     )
@@ -214,7 +215,7 @@ fun PlayerProgressScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
-                            ) { CircularProgressIndicator(color = BluePrimary) }
+                            ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
                         }
                         historyError != null -> {
                             Text(
@@ -233,7 +234,7 @@ fun PlayerProgressScreen(
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                                     .fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
-                                color = Color(0xFFF8FAFC)
+                                color = MaterialTheme.colorScheme.surfaceContainerLow
                             ) {
                                 Column(Modifier.padding(12.dp)) {
                                     LegendRow()
@@ -246,29 +247,24 @@ fun PlayerProgressScreen(
                     if (feedback != null) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Coach Feedback",
+                            text = "Feedback from: ${feedback.coach_username ?: "Coach"}",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 color = TextPrimary
                             ),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
+//
+                        Spacer(modifier = Modifier.height(6.dp))
                         Surface(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                                 .fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFF8FAFC)
+                            color = MaterialTheme.colorScheme.surfaceContainerLow
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = "Feedback from: ${feedback.coach_username ?: "Coach"}",
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = TextPrimary
-                                    )
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
+
                                 Text(
                                     text = feedback.notes ?: "No notes provided",
                                     style = MaterialTheme.typography.bodySmall,
@@ -279,39 +275,58 @@ fun PlayerProgressScreen(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    if (canAddFeedback && feedback == null) {
-                        OutlinedButton(
-                            onClick = onAddFeedback,
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = BluePrimary
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
-                        ) {
-                            Text("Add Feedback")
-                        }
-                    }
                     Button(
                         onClick = {
                             val fileName = "PlayerProgress-" +
-                                (if (playerName.isNotBlank()) playerName else "Player$playerId") +
-                                "-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.getDefault()).format(Date()) + ".pdf"
+                                    (if (playerName.isNotBlank()) playerName else "Player$playerId") +
+                                    "-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.getDefault()).format(Date()) + ".pdf"
                             pdfLauncher.launch(fileName)
                         },
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BluePrimary,
+                            containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .height(56.dp)
+                            .padding(horizontal = 16.dp),
                         enabled = itemsAll.isNotEmpty()
                     ) {
-                        Text("Generate & Print Report (PDF)")
+                        Text(
+                            "Generate & Print Report (PDF)",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp
+                            )
+                        )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    if (canAddFeedback && feedback == null) {
+                        OutlinedButton(
+                            onClick = onAddFeedback,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Text(
+                                "Add Feedback",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp
+                                )
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+
                 }
                 else -> {
                     if (sessionId == null) {
@@ -334,7 +349,7 @@ private fun MetricsCard(perf: List<com.example.figcompose.service.PerformanceDto
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF8FAFC),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -389,9 +404,9 @@ private fun KeyValueRow(label: String, value: String, highlight: Boolean = false
         Text(
             text = value,
             style = if (highlight) {
-                MaterialTheme.typography.titleMedium.copy(color = BluePrimary, fontWeight = FontWeight.SemiBold)
+                MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             } else {
-                MaterialTheme.typography.titleMedium.copy(color = BluePrimary)
+                MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.primary)
             }
         )
     }
@@ -417,17 +432,8 @@ private fun TrendRow(text: String, up: Boolean) {
 
 @Composable
 private fun MetricsCardLatest(p: com.example.figcompose.service.PerformanceDto) {
-    Surface(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF8FAFC),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Spacer(Modifier.height(4.dp))
+    Column(Modifier.padding(horizontal = 8.dp)) {
+        Spacer(Modifier.height(4.dp))
             val tiles = listOf(
                 "Distance (km)" to (p.distance_meters?.div(1000.0)?.let { String.format("%.2f", it) } ?: "-"),
                 "Speed (m/s)" to (p.speed?.let { String.format("%.2f", it) } ?: "-"),
@@ -458,7 +464,6 @@ private fun MetricsCardLatest(p: com.example.figcompose.service.PerformanceDto) 
                     } ?: Spacer(Modifier.weight(1f))
                 }
             }
-        }
     }
 }
 
@@ -473,7 +478,7 @@ private fun PerformanceSummarySection(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFFF1F5F9)
+            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Column(Modifier.padding(12.dp)) {
                 Text(
@@ -501,7 +506,7 @@ private fun PerformanceSummarySection(
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFF1F5F9)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
@@ -527,7 +532,7 @@ private fun MetricTile(label: String, value: String, modifier: Modifier = Modifi
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -540,7 +545,7 @@ private fun MetricTile(label: String, value: String, modifier: Modifier = Modifi
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = BluePrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
             )
@@ -551,10 +556,10 @@ private fun MetricTile(label: String, value: String, modifier: Modifier = Modifi
 @Composable
 private fun LegendRow() {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(14.dp).background(Color(0xFFDC2626), RoundedCornerShape(3.dp)))
+        Box(Modifier.size(14.dp).background(Color(0xFFDC2626), RoundedCornerShape(4.dp)))
         Text("  Baseline (Previous)", style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary))
         Spacer(Modifier.width(16.dp))
-        Box(Modifier.size(14.dp).background(Color(0xFF16A34A), RoundedCornerShape(3.dp)))
+        Box(Modifier.size(14.dp).background(Color(0xFF16A34A), RoundedCornerShape(4.dp)))
         Text("  Current", style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary))
     }
 }
@@ -590,6 +595,7 @@ private fun VisualProgressChart(
         val barWidth = groupWidth * 0.34f
         val gap = groupWidth * 0.06f
 
+        val corner = 8.dp.toPx()
         categories.forEachIndexed { index, entry ->
             val base = entry.second.first.toFloat()
             val curr = entry.second.second.toFloat()
@@ -602,15 +608,17 @@ private fun VisualProgressChart(
             val baseLeft = gx + gap
             val currLeft = gx + gap + barWidth + gap
 
-            drawRect(
+            drawRoundRect(
                 color = baselineColor,
                 topLeft = Offset(baseLeft, origin.y + h - baseHeight),
-                size = Size(barWidth, baseHeight)
+                size = Size(barWidth, baseHeight),
+                cornerRadius = CornerRadius(corner, corner)
             )
-            drawRect(
+            drawRoundRect(
                 color = currentColor,
                 topLeft = Offset(currLeft, origin.y + h - currHeight),
-                size = Size(barWidth, currHeight)
+                size = Size(barWidth, currHeight),
+                cornerRadius = CornerRadius(corner, corner)
             )
         }
     }

@@ -2,6 +2,7 @@ package com.example.figcompose.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.shape.CircleShape
@@ -22,7 +23,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.figcompose.R
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.FigcomposeTheme
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
@@ -159,9 +159,9 @@ fun ProfileScreen(
                 if (showEdit) {
                     Button(
                         onClick = onEdit,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
@@ -172,8 +172,10 @@ fun ProfileScreen(
                     val weight = if (showEdit) 1f else 1f
                     OutlinedButton(
                         onClick = onSubmitFeedback,
-                        modifier = Modifier.weight(weight),
-                        shape = RoundedCornerShape(12.dp)
+                        modifier = Modifier.weight(weight).height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text("Submit Feedback")
                     }
@@ -203,7 +205,7 @@ private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF8FAFC)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             content()

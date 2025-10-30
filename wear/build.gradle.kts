@@ -65,6 +65,9 @@ dependencies {
     implementation(libs.horologist.tiles)
     implementation(libs.androidx.watchface.complications.data.source.ktx)
 
+    // Material Color Utilities for Expressive schemes on Wear
+    implementation(libs.material.color.utilities)
+
     // Wear Navigation
     implementation("androidx.wear.compose:compose-navigation:1.4.0")
 

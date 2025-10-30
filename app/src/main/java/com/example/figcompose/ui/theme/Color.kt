@@ -11,8 +11,13 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // App palette inspired by the screenshot
-val BluePrimary = Color(0xFF0A84FF)      // Vibrant blue for primary actions
-val BluePrimaryDark = Color(0xFF0669CC)  // Darker blue for pressed states
+// Jersey-based brand colors
+val BrandSeedBlue = Color(0xFF008EC4)    // Seed for Expressive scheme (jersey blue)
+val BrandNavy = Color(0xFF022658)        // Dark accent drawn from trim
+val BrandLightAccent = Color(0xFFC9D3E8)
+// Keep legacy names for compatibility, mapped to jersey palette
+val BluePrimary = BrandSeedBlue
+val BluePrimaryDark = BrandNavy
 val TextPrimary = Color(0xFF111111)      // Near-black primary text
 val TextSecondary = Color(0xFF6B7280)    // Muted gray for secondary text
 val OutlineColor = Color(0x220A84FF)     // Subtle outline/pressed ripple

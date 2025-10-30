@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.FigcomposeTheme
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
@@ -160,7 +159,7 @@ fun EditProfileScreen(
                 LabeledField(label = "Password", value = adminPassword, onChange = { adminPassword = it })
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
             Button(
                 onClick = {
                     val isCoachLocal = (authManager.currentUser.value?.get("role") as? String) == "coach"
@@ -184,9 +183,9 @@ fun EditProfileScreen(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 if (updateState is UpdateProfileState.Submitting) {
                     CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)

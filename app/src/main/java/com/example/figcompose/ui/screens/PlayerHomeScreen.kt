@@ -27,7 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
-import com.example.figcompose.ui.theme.BluePrimary
+import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +81,7 @@ fun PlayerHomeScreen(
                     .padding(end = 8.dp)
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(BluePrimary),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(onClick = {

@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.figcompose.R
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.FigcomposeTheme
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
@@ -129,7 +128,7 @@ fun UsersScreen(
 
             if (state is UsersState.Loading && allUsers.isEmpty()) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = BluePrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
 

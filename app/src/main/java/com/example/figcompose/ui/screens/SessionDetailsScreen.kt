@@ -98,7 +98,7 @@ fun SessionDetailsScreen(
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator(color = BluePrimary) }
+                    ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
                 }
                 is SessionDetailsState.Error -> {
                     Text(
@@ -131,7 +131,7 @@ fun SessionDetailsScreen(
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFFF1F5F9)
+                        color = MaterialTheme.colorScheme.surfaceContainerLow
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             InfoRow(label = "Start", value = session.start_time ?: "-")
@@ -151,7 +151,7 @@ fun SessionDetailsScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp),
                                 contentAlignment = Alignment.Center
-                            ) { CircularProgressIndicator(color = BluePrimary) }
+                            ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
                         }
                         is ReportState.Error -> {
                             Text(
@@ -242,7 +242,7 @@ private fun PerfStat(title: String, value: String, modifier: Modifier = Modifier
                 text = value,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = BluePrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -263,7 +263,7 @@ private fun PlayerRow(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF8FAFC)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

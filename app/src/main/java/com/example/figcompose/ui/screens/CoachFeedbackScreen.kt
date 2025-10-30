@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.figcompose.service.FeedbackRequest
 import com.example.figcompose.service.RetrofitProvider
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
@@ -141,9 +140,9 @@ fun CoachFeedbackScreen(
                 onClick = { submit() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 if (isSubmitting) {
                     CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)

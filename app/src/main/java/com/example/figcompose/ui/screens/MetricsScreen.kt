@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
@@ -42,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.figcompose.service.PerformanceRequest
 import com.example.figcompose.service.RetrofitProvider
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
 import com.example.figcompose.util.RequestMetricsPermissions
@@ -231,8 +231,9 @@ fun MetricsScreen(
                     onClick = { stopAndSubmit() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     if (isSubmitting) {

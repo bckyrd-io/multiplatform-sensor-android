@@ -1,6 +1,7 @@
 package com.example.figcompose.ui.screens
 
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,13 +104,15 @@ fun CreateSessionScreen(
                     navigationIconContentColor = TextPrimary
                 )
             )
-        }
+        },
+        containerColor = Color.White
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .background(Color.White)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             // Title Input
@@ -118,6 +121,7 @@ fun CreateSessionScreen(
                 onValueChange = { title = it },
                 label = { Text("Session Title") },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -139,7 +143,8 @@ fun CreateSessionScreen(
                     readOnly = true,
                     label = { Text("Session Type") },
                     trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) },
-                    modifier = Modifier.menuAnchor()
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 )
                 
                 ExposedDropdownMenu(
@@ -180,13 +185,13 @@ fun CreateSessionScreen(
                             }
                         }
                     },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(4.dp)
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
                         contentDescription = "Start Time",
-                        tint = if (startTime != null) BluePrimary else TextSecondary
+                        tint = if (startTime != null) MaterialTheme.colorScheme.primary else TextSecondary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -217,13 +222,13 @@ fun CreateSessionScreen(
                             }
                         }
                     },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(4.dp)
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
                         contentDescription = "End Time",
-                        tint = if (endTime != null) BluePrimary else TextSecondary
+                        tint = if (endTime != null) MaterialTheme.colorScheme.primary else TextSecondary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -241,6 +246,7 @@ fun CreateSessionScreen(
                 onValueChange = { location = it },
                 label = { Text("Location") },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -258,11 +264,12 @@ fun CreateSessionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
+                shape = RoundedCornerShape(12.dp),
                 maxLines = 5
             )
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Submit Button
             Button(
                 onClick = {
@@ -285,12 +292,13 @@ fun CreateSessionScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid) BluePrimary else Color.LightGray
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White
                 ),
-                enabled = isFormValid
+                enabled = true
             ) {
                 Text(
                     "Create Session",

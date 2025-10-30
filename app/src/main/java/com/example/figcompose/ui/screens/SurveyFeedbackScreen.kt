@@ -1,8 +1,10 @@
 package com.example.figcompose.ui.screens
 
+import androidx.compose.animation.animateColorAsState
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,7 +50,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.FigcomposeTheme
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
@@ -120,13 +121,14 @@ fun SurveyFeedbackScreen(
                             .height(64.dp)
                             .clickable { selectedCondition = c },
                         shape = RoundedCornerShape(14.dp),
-                        color = if (selected) Color(0xFFEFF6FF) else Color(0xFFF8FAFC),
-                        tonalElevation = 0.dp
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        tonalElevation = 0.dp,
+                        border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB))
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
                                 text = c.label,
-                                color = if (selected) BluePrimary else TextPrimary,
+                                color = if (selected) MaterialTheme.colorScheme.primary else TextPrimary,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                             )
                         }
@@ -180,9 +182,9 @@ fun SurveyFeedbackScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BluePrimary)
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 if (submitState is SubmitSurveyState.Submitting) {
                     CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
@@ -224,12 +226,12 @@ private fun StarRating(rating: Int, onRatingChange: (Int) -> Unit) {
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(if (filled) Color(0xFFFFF7E5) else Color(0xFFF3F4F6))
+                    .background(Color.Transparent)
                     .border(1.dp, if (filled) Color(0xFFFFE08A) else Color(0xFFE5E7EB), CircleShape)
                     .clickable { onRatingChange(i) },
                 contentAlignment = Alignment.Center
             ) {
-                Text("★", color = if (filled) Color(0xFFFFB800) else Color(0xFF9CA3AF))
+                Text("★", color = if (filled) Color(0xFFFFB800) else TextSecondary)
             }
         }
     }
@@ -242,7 +244,8 @@ private fun PerformanceCard(level: PerformanceLevel, selected: Boolean, onClick:
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
-        color = if (selected) Color(0xFFEFF6FF) else Color(0xFFF8FAFC)
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.primary else Color(0xFFE5E7EB))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -251,8 +254,8 @@ private fun PerformanceCard(level: PerformanceLevel, selected: Boolean, onClick:
             Box(
                 modifier = Modifier
                     .size(18.dp)
-                    .border(2.dp, if (selected) BluePrimary else Color(0xFFCBD5E1), CircleShape)
-                    .background(if (selected) BluePrimary else Color.Transparent, CircleShape)
+                    .border(2.dp, if (selected) MaterialTheme.colorScheme.primary else Color(0xFFCBD5E1), CircleShape)
+                    .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent, CircleShape)
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {

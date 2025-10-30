@@ -1,11 +1,13 @@
 package com.example.figcompose.ui.screens
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+//import androidx.compose.foundation.lazy.animateItemPlacement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -89,7 +91,7 @@ fun DashboardScreen(
                             .padding(end = 8.dp)
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(BluePrimary),
+                            .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
                         IconButton(onClick = onAdd) {
@@ -159,7 +161,7 @@ fun DashboardScreen(
                             .padding(24.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = BluePrimary)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -173,7 +175,7 @@ fun DashboardScreen(
                     )
                 }
             } else {
-                items(sessions) { s ->
+                items(sessions, key = { it.id }) { s ->
                     val title = s.title ?: "Session #${s.id}"
                     val subtitle = listOfNotNull(s.session_type, s.location).joinToString(" • ")
                     SessionItem(
@@ -197,7 +199,7 @@ private fun StatCard(title: String, value: String, modifier: Modifier = Modifier
             modifier
         },
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF1F5F9)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -210,7 +212,7 @@ private fun StatCard(title: String, value: String, modifier: Modifier = Modifier
                 style = MaterialTheme.typography.displaySmall.copy(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -237,9 +239,9 @@ private fun PerformanceCard(
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFF1F5F9)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp).animateContentSize()) {
             Text(
                 text = "Players per session",
                 style = MaterialTheme.typography.titleMedium.copy(
@@ -250,7 +252,7 @@ private fun PerformanceCard(
             if (isLoading) {
                 Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    CircularProgressIndicator(color = BluePrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -258,9 +260,8 @@ private fun PerformanceCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
             ) {
+                val primaryColor = MaterialTheme.colorScheme.primary
                 AndroidView(
                     modifier = Modifier
                         .fillMaxSize()
@@ -294,8 +295,7 @@ private fun PerformanceCard(
                         val labels = items.map { s ->
                             s.session_title?.take(12)?.ifBlank { "S#${s.session_id}" } ?: "S#${s.session_id}"
                         }
-
-                        val color = BluePrimary.toArgb()
+                        val color = primaryColor.toArgb()
                         val set = LineDataSet(entries, "Players").apply {
                             setDrawFilled(true)
                             setDrawValues(false)
@@ -332,13 +332,14 @@ private fun PerformanceCard(
 }
 
 @Composable
-private fun SessionItem(title: String, subtitle: String, onClick: () -> Unit) {
+private fun SessionItem(modifier: Modifier = Modifier, title: String, subtitle: String, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .then(modifier),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFEFF6FF)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Row(
             modifier = Modifier
@@ -346,19 +347,11 @@ private fun SessionItem(title: String, subtitle: String, onClick: () -> Unit) {
                 .clickable(onClick = onClick),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFDCEFFF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.DateRange,
-                    contentDescription = null,
-                    tint = BluePrimary
-                )
-            }
+            Icon(
+                imageVector = Icons.Outlined.DateRange,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -376,7 +369,7 @@ private fun SessionItem(title: String, subtitle: String, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Outlined.KeyboardArrowRight,
                 contentDescription = "Go",
-                tint = BluePrimary
+                tint = TextSecondary
             )
         }
     }

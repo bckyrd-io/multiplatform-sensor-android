@@ -13,7 +13,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.figcompose.ui.theme.BluePrimary
 import com.example.figcompose.ui.theme.TextPrimary
 import com.example.figcompose.ui.theme.TextSecondary
 import androidx.compose.material.icons.Icons
@@ -91,13 +90,12 @@ fun LandingScreen(
                     onClick = onLogin,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BluePrimary,
+                        containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                    )
                 ) {
                     Text(
                         text = "Log In",
@@ -112,18 +110,18 @@ fun LandingScreen(
                     onClick = onSignUp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = BluePrimary
+                        contentColor = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.dp, BluePrimary)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text = "Sign Up",
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = BluePrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
