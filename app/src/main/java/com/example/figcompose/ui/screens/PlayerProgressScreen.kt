@@ -170,12 +170,16 @@ fun PlayerProgressScreen(
                         if (uri != null) {
                             val latestPerf = itemsAll.firstOrNull()
                             val title = session?.title ?: (session?.id?.let { "Session #$it" } ?: (sessionId?.let { "Session #$it" } ?: "-"))
+                            val timeMeta: String? = listOfNotNull(session?.start_time, session?.end_time).joinToString(" · ").ifBlank { null }
+                            val playerNotes = (report.survey.firstOrNull { it.player_id == playerId && (sessionId == null || it.session_id == sessionId) }?.response?.get("notes") as? String)?.trim()
                             val bytes = buildPlayerReportPdf(
                                 sessionTitle = title,
                                 playerName = if (playerName.isNotBlank()) playerName else "Player #$playerId",
+                                sessionMeta = timeMeta,
                                 latest = latestPerf,
                                 previous = previousSingle,
-                                coachNotes = feedback?.notes
+                                coachNotes = feedback?.notes,
+                                playerNotes = playerNotes
                             )
                             context.contentResolver.openOutputStream(uri)?.use { out ->
                                 out.write(bytes)
@@ -240,6 +244,38 @@ fun PlayerProgressScreen(
                                     LegendRow()
                                     VisualProgressChart(latest = latest, previous = previous.firstOrNull())
                                 }
+                            }
+                        }
+                    }
+
+                    val surveyEntry = report.survey.firstOrNull {
+                        it.player_id == playerId && (sessionId == null || it.session_id == sessionId)
+                    }
+                    val surveyNotes = (surveyEntry?.response?.get("notes") as? String)?.trim()
+                    if (!surveyNotes.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Player Feedback",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            ),
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Surface(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerLow
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = surveyNotes,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
                             }
                         }
                     }
@@ -438,7 +474,6 @@ private fun MetricsCardLatest(p: com.example.figcompose.service.PerformanceDto) 
                 "Distance (km)" to (p.distance_meters?.div(1000.0)?.let { String.format("%.2f", it) } ?: "-"),
                 "Speed (m/s)" to (p.speed?.let { String.format("%.2f", it) } ?: "-"),
                 "Acceleration (m/s²)" to (p.acceleration?.let { String.format("%.2f", it) } ?: "-"),
-                "Deceleration (m/s²)" to (p.deceleration?.let { String.format("%.2f", it) } ?: "-"),
                 "Cadence (spm)" to (p.cadence_spm?.let { formatNumber(it) } ?: "-"),
                 "Heart Rate (bpm)" to (p.heart_rate?.toString() ?: "-")
             )
@@ -678,9 +713,11 @@ private fun formatNumber(n: Double): String {
 private fun buildPlayerReportPdf(
     sessionTitle: String,
     playerName: String,
+    sessionMeta: String?,
     latest: com.example.figcompose.service.PerformanceDto?,
     previous: com.example.figcompose.service.PerformanceDto?,
-    coachNotes: String?
+    coachNotes: String?,
+    playerNotes: String?
 ): ByteArray {
     val doc = PdfDocument()
     val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
@@ -696,6 +733,10 @@ private fun buildPlayerReportPdf(
     y += 22f
     c.drawText("Session: $sessionTitle", 40f, y, subPaint)
     y += 18f
+    sessionMeta?.let {
+        c.drawText(it, 40f, y, subPaint)
+        y += 18f
+    }
     val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
     c.drawText("Player: $playerName    Generated: $dateStr", 40f, y, subPaint)
     y += 28f
@@ -732,8 +773,8 @@ private fun buildPlayerReportPdf(
         Pair(previous?.heart_rate?.toDouble() ?: 0.0, latest?.heart_rate?.toDouble() ?: 0.0)
     )
     val maxVal = cat.flatMap { listOf(it.first, it.second) }.maxOrNull()?.takeIf { it > 0 } ?: 1.0
-    val baselinePaint = Paint().apply { color = 0xFF1D4ED8.toInt() }
-    val currentPaint = Paint().apply { color = 0xFFF59E0B.toInt() }
+    val baselinePaint = Paint().apply { color = 0xFFDC2626.toInt() } // red like UI baseline
+    val currentPaint = Paint().apply { color = 0xFF16A34A.toInt() }  // green like UI current
     val groups = cat.size
     val groupWidth = chartWidth / groups
     val barWidth = groupWidth * 0.34f
@@ -750,6 +791,99 @@ private fun buildPlayerReportPdf(
         c.drawRect(curLeft, chartTop + chartHeight - curH, curLeft + barWidth, chartTop + chartHeight, currentPaint)
     }
     y = chartTop + chartHeight + 18f
+
+    // Legend matching UI
+    val legendBox = Paint().apply { color = 0xFFDC2626.toInt() }
+    c.drawRect(40f, y - 10f, 50f, y, legendBox)
+    c.drawText("  Baseline (Previous)", 52f, y - 1f, subPaint)
+    val legendBox2 = Paint().apply { color = 0xFF16A34A.toInt() }
+    c.drawRect(220f, y - 10f, 230f, y, legendBox2)
+    c.drawText("  Current", 232f, y - 1f, subPaint)
+    y += 16f
+
+    // Detailed changes vs previous (if both available)
+    if (latest != null && previous != null) {
+        c.drawText("Detailed Change vs. Previous Session", 40f, y, labelPaint)
+        y += 18f
+        fun drawDeltaRow(label: String, oldStr: String, deltaStr: String) {
+            c.drawText(label, 40f, y, subPaint)
+            c.drawText(oldStr, 260f, y, valuePaint)
+            c.drawText(deltaStr, 430f, y, valuePaint)
+            y += 16f
+        }
+        val distOld = previous.distance_meters?.div(1000.0)
+        val distNew = latest.distance_meters?.div(1000.0)
+        val distDelta = if (distOld != null && distNew != null) distNew - distOld else null
+        drawDeltaRow(
+            "Distance (km)",
+            "Old: ${distOld?.let { String.format("%.2f km", it) } ?: "-"}",
+            distDelta?.let { (if (it > 0) "+" else if (it < 0) "" else "±") + String.format("%.2f km", it) } ?: "Δ -"
+        )
+        val spdOld = previous.speed
+        val spdNew = latest.speed
+        val spdDelta = if (spdOld != null && spdNew != null) spdNew - spdOld else null
+        drawDeltaRow(
+            "Speed (m/s)",
+            "Old: ${spdOld?.let { String.format("%.2f m/s", it) } ?: "-"}",
+            spdDelta?.let { (if (it > 0) "+" else if (it < 0) "" else "±") + String.format("%.2f m/s", it) } ?: "Δ -"
+        )
+        val accOld = previous.acceleration
+        val accNew = latest.acceleration
+        val accDelta = if (accOld != null && accNew != null) accNew - accOld else null
+        drawDeltaRow(
+            "Acceleration (m/s²)",
+            "Old: ${accOld?.let { String.format("%.2f m/s²", it) } ?: "-"}",
+            accDelta?.let { (if (it > 0) "+" else if (it < 0) "" else "±") + String.format("%.2f m/s²", it) } ?: "Δ -"
+        )
+        val decOld = previous.deceleration
+        val decNew = latest.deceleration
+        val decDelta = if (decOld != null && decNew != null) decNew - decOld else null
+        drawDeltaRow(
+            "Deceleration (m/s²)",
+            "Old: ${decOld?.let { String.format("%.2f m/s²", it) } ?: "-"}",
+            decDelta?.let { (if (it > 0) "+" else if (it < 0) "" else "±") + String.format("%.2f m/s²", it) } ?: "Δ -"
+        )
+        val cadOld = previous.cadence_spm
+        val cadNew = latest.cadence_spm
+        val cadDelta = if (cadOld != null && cadNew != null) cadNew - cadOld else null
+        drawDeltaRow(
+            "Cadence (spm)",
+            "Old: ${cadOld?.let { String.format("%.2f spm", it) } ?: "-"}",
+            cadDelta?.let { (if (it > 0) "+" else if (it < 0) "" else "±") + String.format("%.2f spm", it) } ?: "Δ -"
+        )
+        val hrOld = previous.heart_rate?.toDouble()
+        val hrNew = latest.heart_rate?.toDouble()
+        val hrDelta = if (hrOld != null && hrNew != null) hrNew - hrOld else null
+        drawDeltaRow(
+            "Heart Rate (bpm)",
+            "Old: ${hrOld?.let { String.format("%.0f bpm", it) } ?: "-"}",
+            hrDelta?.let { (if (it > 0) "+" else if (it < 0) "" else "±") + String.format("%.0f bpm", it) } ?: "Δ -"
+        )
+        y += 6f
+    }
+
+    // Player feedback notes (above coach section)
+    playerNotes?.takeIf { it.isNotBlank() }?.let { pn ->
+        c.drawText("Player Feedback", 40f, y, labelPaint)
+        y += 18f
+        val textPaint = subPaint
+        val words = pn.split(" ")
+        var line = ""
+        for (w in words) {
+            val test = if (line.isEmpty()) w else "$line $w"
+            if (textPaint.measureText(test) > 515f) {
+                c.drawText(line, 40f, y, textPaint)
+                y += 16f
+                line = w
+            } else {
+                line = test
+            }
+        }
+        if (line.isNotEmpty()) {
+            c.drawText(line, 40f, y, textPaint)
+            y += 16f
+        }
+    }
 
     coachNotes?.let {
         c.drawText("Coach Observations", 40f, y, labelPaint)

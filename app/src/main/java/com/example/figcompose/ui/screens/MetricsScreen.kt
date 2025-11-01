@@ -220,7 +220,7 @@ fun MetricsScreen(
                 MetricRow("Speed (m/s)", String.format("%.2f", speed))
                 MetricRow("Cadence (spm)", String.format("%.2f", cadence))
                 MetricRow("Acceleration", String.format("%.2f", acceleration))
-                MetricRow("Deceleration", String.format("%.2f", deceleration))
+//                MetricRow("Deceleration", String.format("%.2f", deceleration))
                 if (submitError != null) {
                     Spacer(Modifier.height(8.dp))
                     Text(text = submitError ?: "", color = Color(0xFFDC2626))

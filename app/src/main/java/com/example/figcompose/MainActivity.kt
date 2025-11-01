@@ -42,7 +42,10 @@ sealed class Screen {
     data class PlayerHome(val playerId: Int, val playerName: String) : Screen()
     data class Metrics(val playerId: Int, val playerName: String, val sessionId: Int, val sessionTitle: String) : Screen()
     data class CoachFeedback(val coachId: Int?, val playerId: Int, val playerName: String, val sessionId: Int) : Screen()
+    data class SelectSession(val playerId: Int, val playerName: String, val purpose: SessionPurpose) : Screen()
 }
+
+enum class SessionPurpose { Metrics, Survey }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -249,15 +252,26 @@ class MainActivity : ComponentActivity() {
                                 playerId = screen.playerId,
                                 playerName = screen.playerName,
                                 onBack = { /* Player home acts as root for players */ },
-                                onSubmitFeedback = { sid ->
-                                    currentScreen.value = Screen.SurveyFeedback(screen.playerId, screen.playerName, sid)
+                                onSubmitFeedback = {
+                                    currentScreen.value = Screen.SelectSession(screen.playerId, screen.playerName, SessionPurpose.Survey)
                                 },
                                 onSettings = {
                                     authManager.logout()
                                     currentScreen.value = Screen.Landing
                                 },
-                                onOpenMetrics = { sid, stitle ->
-                                    currentScreen.value = Screen.Metrics(screen.playerId, screen.playerName, sid, stitle)
+                                onOpenMetrics = {
+                                    currentScreen.value = Screen.SelectSession(screen.playerId, screen.playerName, SessionPurpose.Metrics)
+                                }
+                            )
+                        }
+                        is Screen.SelectSession -> {
+                            SessionsScreen(
+                                onBack = { currentScreen.value = Screen.PlayerHome(screen.playerId, screen.playerName) },
+                                onSessionSelected = { sid, title ->
+                                    when (screen.purpose) {
+                                        SessionPurpose.Metrics -> currentScreen.value = Screen.Metrics(screen.playerId, screen.playerName, sid, title)
+                                        SessionPurpose.Survey -> currentScreen.value = Screen.SurveyFeedback(screen.playerId, screen.playerName, sid)
+                                    }
                                 }
                             )
                         }

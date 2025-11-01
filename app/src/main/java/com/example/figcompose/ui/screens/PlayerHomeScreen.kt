@@ -9,23 +9,16 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.figcompose.ui.theme.FigcomposeTheme
 import com.example.figcompose.ui.theme.TextPrimary
-import com.example.figcompose.util.SessionManager
-import com.example.figcompose.util.SessionsListState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 
@@ -35,38 +28,17 @@ fun PlayerHomeScreen(
     playerId: Int,
     playerName: String,
     onBack: () -> Unit = {},
-    onSubmitFeedback: (Int?) -> Unit = {},
+    onSubmitFeedback: () -> Unit = {},
     onSettings: () -> Unit = {},
-    onOpenMetrics: (Int, String) -> Unit = { _, _ -> }
+    onOpenMetrics: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val sessionManager = remember(context) { SessionManager(context) }
-    val listState by sessionManager.listState
-
-    LaunchedEffect(Unit) {
-        sessionManager.loadSessions()
-    }
-
-    val lastSession = when (val s = listState) {
-        is SessionsListState.Loaded -> s.sessions.maxByOrNull { it.start_time ?: "" }
-        else -> null
-    }
-    val lastSessionId: Int? = lastSession?.id
-    val lastSessionTitle: String = lastSession?.title ?: ""
-
-    // Reuse ProfileScreen UI, but show only Submit Feedback and hzide Edit
+    // Reuse ProfileScreen UI, but show only Submit Feedback and hide Edit
     ProfileScreen(
         playerId = playerId,
         playerName = playerName,
         onBack = onBack,
         onEdit = {},
-        onSubmitFeedback = {
-            if (lastSessionId == null) {
-                Toast.makeText(context, "Sessions are not created", Toast.LENGTH_SHORT).show()
-            } else {
-                onSubmitFeedback(lastSessionId)
-            }
-        },
+        onSubmitFeedback = onSubmitFeedback,
         showEdit = false,
         showSubmitFeedback = true,
         showBack = false,
@@ -84,13 +56,7 @@ fun PlayerHomeScreen(
                     .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = {
-                    if (lastSessionId == null) {
-                        Toast.makeText(context, "Sessions are not created", Toast.LENGTH_SHORT).show()
-                    } else {
-                        onOpenMetrics(lastSessionId, lastSessionTitle.ifBlank { "Session #$lastSessionId" })
-                    }
-                }) {
+                IconButton(onClick = { onOpenMetrics() }) {
                     Icon(Icons.Filled.PlayArrow, contentDescription = "Metrics", tint = Color.White)
                 }
             }

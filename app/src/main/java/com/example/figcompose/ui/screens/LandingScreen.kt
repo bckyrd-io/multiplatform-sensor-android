@@ -19,6 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.figcompose.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,28 +30,28 @@ fun LandingScreen(
     onSignUp: () -> Unit = {}
 ) {
     Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Performance Tracker",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.CheckCircle,
-                            contentDescription = "App icon",
-                            tint = TextPrimary
-                        )
-                    }
-                }
-            )
-        }
+//        topBar = {
+//            CenterAlignedTopAppBar(
+//                title = {
+//                    Text(
+//                        text = "Performance Tracker",
+//                        style = MaterialTheme.typography.titleMedium.copy(
+//                            fontWeight = FontWeight.SemiBold,
+//                            color = TextPrimary
+//                        )
+//                    )
+//                },
+//                navigationIcon = {
+//                    IconButton(onClick = { /* TODO */ }) {
+//                        Icon(
+//                            imageVector = Icons.Filled.CheckCircle,
+//                            contentDescription = "App icon",
+//                            tint = TextPrimary
+//                        )
+//                    }
+//                }
+//            )
+//        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -63,15 +66,21 @@ fun LandingScreen(
                     .wrapContentSize(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Silver Strikers Fc",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 28.sp,
-                        color = TextPrimary
-                    ),
-                    textAlign = TextAlign.Center
+                Image(
+                    painter = painterResource(id = R.drawable.silver_strikers),
+                    contentDescription = "Silver Strikers logo",
+                    modifier = Modifier.size(175.dp)
                 )
+                Spacer(Modifier.height(175.dp))
+//                Text(
+//                    text = "Silver Strikers Fc",
+//                    style = MaterialTheme.typography.headlineSmall.copy(
+//                        fontWeight = FontWeight.ExtraBold,
+//                        fontSize = 28.sp,
+//                        color = TextPrimary
+//                    ),
+//                    textAlign = TextAlign.Center
+//                )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = "Elevate your game with real-time performance insights and personalized feedback.",
