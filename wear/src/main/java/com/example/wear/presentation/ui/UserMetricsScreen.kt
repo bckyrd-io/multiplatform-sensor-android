@@ -1,9 +1,13 @@
 package com.example.wear.presentation.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -131,7 +135,8 @@ fun UserMetricsScreen(
                     Text(
                         text = playerName,
                         style = MaterialTheme.typography.title3,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        color = MaterialTheme.colors.primary
                     )
                 }
                 
@@ -140,118 +145,99 @@ fun UserMetricsScreen(
                     Text(
                         text = sessionTitle,
                         style = MaterialTheme.typography.caption1,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        color = MaterialTheme.colors.primary
                     )
                 }
                 
                 // Real-time metrics
                 item {
-                    Card(
-                        onClick = { },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
+                            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "Distance", style = MaterialTheme.typography.caption1)
-                            Text(
-                                text = "${distanceMeters.toInt()} m",
-                                style = MaterialTheme.typography.title2
-                            )
-                        }
+                        Text(text = "Distance", style = MaterialTheme.typography.caption1, color = Color.Black)
+                        Text(
+                            text = "${distanceMeters.toInt()} m",
+                            style = MaterialTheme.typography.title2,
+                            color = Color.Black
+                        )
                     }
                 }
                 
                 item {
-                    Card(
-                        onClick = { },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
+                            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "Heart Rate", style = MaterialTheme.typography.caption1)
-                            Text(
-                                text = "$heartRate bpm",
-                                style = MaterialTheme.typography.title2
-                            )
-                        }
+                        Text(text = "Heart Rate", style = MaterialTheme.typography.caption1, color = Color.Black)
+                        Text(
+                            text = "$heartRate bpm",
+                            style = MaterialTheme.typography.title2,
+                            color = Color.Black
+                        )
                     }
                 }
                 
                 item {
-                    Card(
-                        onClick = { },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
+                            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "Speed", style = MaterialTheme.typography.caption1)
-                            Text(
-                                text = String.format("%.1f m/s", speed),
-                                style = MaterialTheme.typography.title2
-                            )
-                        }
+                        Text(text = "Speed", style = MaterialTheme.typography.caption1, color = Color.Black)
+                        Text(
+                            text = String.format("%.1f m/s", speed),
+                            style = MaterialTheme.typography.title2,
+                            color = Color.Black
+                        )
                     }
                 }
                 
                 item {
-                    Card(
-                        onClick = { },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
+                            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "Steps", style = MaterialTheme.typography.caption1)
-                            Text(
-                                text = "$steps",
-                                style = MaterialTheme.typography.title2
-                            )
-                        }
+                        Text(text = "Steps", style = MaterialTheme.typography.caption1, color = Color.Black)
+                        Text(
+                            text = "$steps",
+                            style = MaterialTheme.typography.title2,
+                            color = Color.Black
+                        )
                     }
                 }
                 
                 item {
-                    Card(
-                        onClick = { },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
+                            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "Cadence", style = MaterialTheme.typography.caption1)
-                            Text(
-                                text = "${cadence.toInt()} spm",
-                                style = MaterialTheme.typography.title2
-                            )
-                        }
+                        Text(text = "Cadence", style = MaterialTheme.typography.caption1, color = Color.Black)
+                        Text(
+                            text = "${cadence.toInt()} spm",
+                            style = MaterialTheme.typography.title2,
+                            color = Color.Black
+                        )
                     }
                 }
                 

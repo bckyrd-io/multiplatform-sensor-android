@@ -1,9 +1,7 @@
 package com.example.wear.presentation.theme
 
-import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.wear.compose.material.Colors
 import androidx.wear.compose.material.MaterialTheme
 import androidx.compose.material3.ColorScheme
@@ -14,14 +12,10 @@ import com.materialkolor.rememberDynamicColorScheme
 fun MultiplatformTheme(
     content: @Composable () -> Unit
 ) {
-    val context = LocalContext.current
-    val uiMode = context.resources.configuration.uiMode
-    val dark = (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
     // Use the new brand seed blue (#008EC4) same as phone app
     val scheme: ColorScheme = rememberDynamicColorScheme(
         seedColor = Color(0xFF008EC4),
-        isDark = dark,
+        isDark = false,
         style = PaletteStyle.Expressive
     )
     val schemeFixed = scheme.copy(
@@ -40,8 +34,7 @@ fun MultiplatformTheme(
         onSecondary = schemeFixed.onSecondary,
         onBackground = schemeFixed.onBackground,
         onSurface = schemeFixed.onSurface,
-        onError = schemeFixed.onError,
-        isLight = !dark
+        onError = schemeFixed.onError
     )
 
     MaterialTheme(colors = colors, content = content)

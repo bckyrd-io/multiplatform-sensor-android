@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -209,18 +213,55 @@ fun MetricsScreen(
         ) {
             Column(Modifier.fillMaxWidth()) {
                 Spacer(Modifier.height(12.dp))
+//                Text(
+//                    text = playerName,
+//                    style = MaterialTheme.typography.titleMedium.copy(
+//                        fontWeight = FontWeight.SemiBold,
+//                        color = MaterialTheme.colorScheme.primary
+//                    )
+//                )
+//                Spacer(Modifier.height(2.dp))
                 Text(
-                    text =  sessionTitle,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
+                    text = sessionTitle,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 )
                 Spacer(Modifier.height(8.dp))
-                MetricRow("Time (s)", elapsed.toString())
-                MetricRow("Steps", steps.toString())
-                MetricRow("Distance (m)", String.format("%.2f", distance))
-                MetricRow("Speed (m/s)", String.format("%.2f", speed))
-                MetricRow("Cadence (spm)", String.format("%.2f", cadence))
-                MetricRow("Acceleration", String.format("%.2f", acceleration))
-//                MetricRow("Deceleration", String.format("%.2f", deceleration))
+
+                val tiles = listOf(
+                    "Time (s)" to elapsed.toString(),
+                    "Steps" to steps.toString(),
+                    "Distance (m)" to String.format("%.2f", distance),
+                    "Speed (m/s)" to String.format("%.2f", speed),
+                    "Cadence (spm)" to String.format("%.2f", cadence),
+                    "Acceleration" to String.format("%.2f", acceleration)
+                )
+
+                tiles.chunked(2).forEach { row ->
+                    Row(Modifier.fillMaxWidth()) {
+                        row.getOrNull(0)?.let { (label, value) ->
+                            MetricTile(
+                                label = label,
+                                value = value,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(vertical = 6.dp, horizontal = 6.dp)
+                            )
+                        }
+                        row.getOrNull(1)?.let { (label, value) ->
+                            MetricTile(
+                                label = label,
+                                value = value,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(vertical = 6.dp, horizontal = 6.dp)
+                            )
+                        } ?: Spacer(Modifier.weight(1f))
+                    }
+                }
+
                 if (submitError != null) {
                     Spacer(Modifier.height(8.dp))
                     Text(text = submitError ?: "", color = Color(0xFFDC2626))
@@ -259,5 +300,31 @@ private fun MetricRow(label: String, value: String) {
                 color = TextPrimary
             )
         )
+    }
+}
+
+@Composable
+private fun MetricTile(label: String, value: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Column(Modifier.padding(vertical = 12.dp, horizontal = 14.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+        }
     }
 }

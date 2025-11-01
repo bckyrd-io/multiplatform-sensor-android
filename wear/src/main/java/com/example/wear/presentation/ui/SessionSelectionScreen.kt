@@ -30,16 +30,8 @@ fun SessionSelectionScreen(
         scope.launch {
             try {
                 sessions = RetrofitClient.apiService.getSessions()
-                
-                // If sessions exist, auto-select the last one
-                if (sessions.isNotEmpty()) {
-                    val lastSession = sessions.last()
-                    // Auto-navigate to metrics with the last session
-                    navController.navigate("userMetrics/$playerId/$playerName/${lastSession.id}/${lastSession.title}") {
-                        popUpTo("sessionSelection/$playerId/$playerName") { inclusive = true }
-                    }
-                } else {
-                    isLoading = false
+                isLoading = false
+                if (sessions.isEmpty()) {
                     errorMessage = "No sessions available"
                 }
             } catch (e: Exception) {
